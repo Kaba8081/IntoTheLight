@@ -1,25 +1,10 @@
 import pygame as pg
 from os import path
+from typing import Union
 
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
-
-file_path = path.dirname(path.realpath(__file__))
-texture_path = path.abspath(path.join(path.join(file_path, ".."),".."))
-texture_path = path.join(texture_path, "content")
-texture_path = path.join(texture_path, "textures")
-
-textures = {
-    "tile_default": pg.image.load(path.join(texture_path,"tile1.png")),
-    "engines": pg.transform.scale(pg.image.load(path.join(texture_path,"engine.png")),(24,24)),
-    "weapons": pg.transform.scale(pg.image.load(path.join(texture_path,"weapons.png")),(24,24)),
-    "medbay": pg.transform.scale(pg.image.load(path.join(texture_path,"medbay.png")),(24,24)),
-    "o2": pg.transform.scale(pg.image.load(path.join(texture_path,"oxygen.png")),(24,24)),
-    "cameras": pg.transform.scale(pg.image.load(path.join(texture_path,"camera.png")),(24,24)),
-    "bridge": pg.transform.scale(pg.image.load(path.join(texture_path,"bridge.png")),(24,24)),
-    "shields": None,
-    "upgrade_slot": pg.image.load(path.join(texture_path,"upgrade_slot.png")),
-}
+from modules.resources import textures
 
 class Room(pg.sprite.Group):
     def __init__(self, 
@@ -33,7 +18,7 @@ class Room(pg.sprite.Group):
         self.rect = pg.Rect(
             (pos[0]*32, pos[1]*32), 
             (len(room_layout)*32, len(room_layout[0])*32))
-
+        
         self.pos = pos
         self.room_layout = room_layout
         self.role = role if role is not None else None
@@ -43,6 +28,7 @@ class Room(pg.sprite.Group):
             self.icon = pg.transform.flip(self.icon, True, False) if enemy_ship else self.icon
         self.adjecent_rooms = {} # room class : connected tiles
         self.upgrade_slots = {}
+        self._upgrade_index = 0
 
         self.selected = False
         self.hovering = False
@@ -52,12 +38,9 @@ class Room(pg.sprite.Group):
                 tile = Tile(self.pos, (x, y), textures["tile_default"], self)
                 self.add(tile)
 
-        for index, upgrade in enumerate(upgrade_slots):
-            if type(upgrade_slots[upgrade]) is str:
-                self.place_upgrade(index, upgrade, upgrade_slots[upgrade])
-            else:
-                for orientation in upgrade_slots[upgrade]:
-                    self.place_upgrade(index, upgrade, orientation)
+        for upgrade_type in upgrade_slots:
+            for orientation in upgrade_slots[upgrade_type]:
+                self.place_upgrade(upgrade_type, orientation, upgrade_slots[upgrade_type][orientation])
 
     def update(self, mouse_pos: tuple[int, int], mouse_clicked: bool) -> None:
         if self.rect.collidepoint(mouse_pos):
@@ -119,8 +102,10 @@ class Room(pg.sprite.Group):
             s.fill((0,0,0,64)) 
             screen.blit(s, self.rect)
     
-    def place_upgrade(self, index: int, upgrade_type: str, orientation: str) -> None:
-        # TODO: check upgrade_type and create correspoding class
+    def place_upgrade(self, upgrade_type: str, orientation: str, upgrade_name: str) -> None:
+        """Place an upgrade slot or a specified weapon in the given slot."""
+        
+        # find the position of the upgrade slot
         upgrade_pos = None
 
         match orientation:
@@ -133,4 +118,43 @@ class Room(pg.sprite.Group):
             case "left":
                 upgrade_pos = (self.rect.x, self.rect.centery)
         
-        self.upgrade_slots[index] = UpgradeSlot(upgrade_pos, orientation, textures["upgrade_slot"], self)
+        # create the correct upgrade slot type
+        if upgrade_name is None:
+            self.upgrade_slots[self._upgrade_index] = UpgradeSlot(upgrade_pos, orientation, textures["upgrade_slot"], self, upgrade_type)
+        elif upgrade_name in textures["weaponry"]:
+            self.upgrade_slots[self._upgrade_index] = Weapon(upgrade_pos, orientation, upgrade_name, self)
+        elif upgrade_name in textures["thrusters"]:
+            self.upgrade_slots[self._upgrade_index] = Thruster(upgrade_pos, orientation, upgrade_name, self)
+        else: # invalid upgrade name
+            self.upgrade_slots[self._upgrade_index] = UpgradeSlot(upgrade_pos, orientation, textures["upgrade_slot"], self, upgrade_type)
+        
+        self._upgrade_index += 1
+
+        return
+    
+    @property
+    def empty_upgrade_slots(self) -> Union[list, None]:
+        empty_slots = []
+        for slot in self.upgrade_slots:
+            if isinstance(self.upgrade_slots[slot], UpgradeSlot):
+                empty_slots.append(self.upgrade_slots[slot])
+
+        return empty_slots if len(empty_slots) > 0 else None
+
+    @property
+    def weapons(self) -> Union[list, None]:
+        weapons = []
+        for slot in self.upgrade_slots:
+            if isinstance(self.upgrade_slots[slot], Weapon):
+                weapons.append(self.upgrade_slots[slot])
+        
+        return weapons if len(weapons) > 0 else None
+    
+    @property
+    def thrusters(self) -> Union[list, None]:
+        thrusters = []
+        for slot in self.upgrade_slots:
+            if isinstance(self.upgrade_slots[slot], Thruster):
+                thrusters.append(self.upgrade_slots[slot])
+        
+        return thrusters if len(thrusters) > 0 else None

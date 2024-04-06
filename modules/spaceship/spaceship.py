@@ -4,161 +4,7 @@ from os import path
 from modules.spaceship.room import Room
 from modules.spaceship.door import Door
 from modules.spaceship.upgrades import *
-
-ship_layouts = {
-    "cruiser": 
-    {
-        "rooms":
-        [ 
-        {
-            "pos": (0, 0),
-            "tiles": [[1,1],[1,1],[1,1]],
-            "upgrade_slots":{
-                "thruster": "left"
-            }
-        },
-        {
-            "pos": (3, 1),
-            "tiles": [[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
-            "role": "weapons",
-            "upgrade_slots":{
-                "weapon": "top"
-            }
-        },
-        {
-            "pos": (7, 1),
-            "tiles": [[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
-            "role": "medbay",
-            "upgrade_slots":{
-                "weapon": "top",
-                "shield": "right"
-            }
-        },
-        {
-            "pos": (1, 2),
-            "tiles": [[1,1],[1,1]],
-            "role": "o2"
-        },
-        {
-            "pos": (0, 4),
-            "tiles": [[1,1,1],[1,1,1],[1,1,1]],
-            "role": "engines",
-            "upgrade_slots":{
-                "thruster": "left"
-            }
-        },
-        {
-            "pos": (3, 6),
-            "tiles": [[1,1],[1,1],[1,1],[1,1],[1,1],[1,1]],
-            "upgrade_slots":{
-                "weapon": "bottom"
-            }
-        },
-        {
-            "pos": (7, 4),
-            "tiles": [[1,1],[1,1],[1,1],[1,1]],
-            "role": "cameras"
-        },
-        {
-            "pos": (11, 4),
-            "tiles": [[1,1],[1,1],[1,1],[1,1]],
-            "role": "bridge"
-        }
-        ]
-    },
-    "scout":{
-        "rooms":[
-            {
-                "pos": (0, 2),
-                "tiles": [[1,1]],
-                "upgrade_slots":{
-                    "thruster": "left"
-                }
-            },
-            {
-                "pos": (1, 1),
-                "tiles": [[1],[1]],
-                "role": "o2"
-            },
-            {
-                "pos": (1, 2),
-                "tiles": [[1,1],[1,1]],
-                "role": "engines",
-            },
-            {
-                "pos": (1, 4),
-                "tiles": [[1],[1]],
-            },
-            {
-                "pos": (3, 1),
-                "tiles": [[1],[1]]
-            },
-            {
-                "pos": (3, 4),
-                "tiles": [[1],[1]],
-            },
-            {
-                "pos": (4, 2),
-                "tiles": [[1,1],[1,1]],
-                "role": "weapons"
-            },
-            {
-                "pos": (6, 0),
-                "tiles": [[1],[1]],
-            },
-            {
-                "pos": (6, 1),
-                "tiles": [[1,1],[1,1]],
-            },
-            {
-                "pos": (6, 3),
-                "tiles": [[1,1],[1,1]],
-            },
-            {
-                "pos": (6, 5),
-                "tiles": [[1],[1]],
-            },
-            {
-                "pos": (8, 1),
-                "tiles": [[1,1],[1,1]],
-                "role": "medbay"
-            },
-            {
-                "pos": (8, 3),
-                "tiles": [[1,1],[1,1]],
-                "role": "shields"
-            },
-            {
-                "pos": (10, 2),
-                "tiles": [[1],[1]],
-            },
-            {
-                "pos": (10, 3),
-                "tiles": [[1],[1]],
-                "role": "cameras"
-            },
-            {
-                "pos": (12, 2),
-                "tiles": [[1,1],[1,1]],
-                "upgrade_slots":{
-                    "weapon": ["top","bottom"]
-                }
-            },
-            {
-                "pos": (14, 2),
-                "tiles": [[1,1]],
-                "role": "bridge"
-            }
-        ]
-    }
-}
-file_path = path.dirname(path.realpath(__file__))
-texture_path = path.abspath(path.join(path.join(file_path, ".."),".."))
-texture_path = path.join(texture_path, "content")
-texture_path = path.join(texture_path, "textures")
-textures = {
-        "door": pg.image.load(path.join(texture_path,"door.png"))
-}
+from modules.resources import textures, ship_layouts
 
 class Spaceship:
     def __init__(self, ship_type: str, enemy: bool = False) -> None:
@@ -172,9 +18,6 @@ class Spaceship:
                 room["upgrade_slots"] if "upgrade_slots" in room else {},
                 enemy_ship = enemy)
                 )
-    
-    def update(self, dt: float) -> None:
-        pass
 
     def draw(self, screen: pg.Surface) -> None:
         for group in self.rooms:
@@ -260,7 +103,7 @@ class Spaceship:
                                 (connected_tiles[0].rect.centerx + connected_tiles[1].rect.centerx )/2, 
                                 (connected_tiles[0].rect.centery + connected_tiles[1].rect.centery)/2
                                 )
-                    Door(door_coords, textures["door"], self.doors, True)
+                    Door(door_coords, self.doors, True)
                 elif (room.rect.right == adj_room.rect.left and 
                         adj_room.rect.top < room.rect.bottom and 
                         adj_room.rect.bottom > room.rect.top):
@@ -271,7 +114,7 @@ class Spaceship:
                                 (connected_tiles[0].rect.centerx + connected_tiles[1].rect.centerx )/2, 
                                 (connected_tiles[0].rect.centery + connected_tiles[1].rect.centery)/2
                                 )
-                    Door(door_coords, textures["door"], self.doors, True)
+                    Door(door_coords, self.doors, True)
                 elif (room.rect.top == adj_room.rect.bottom and
                         adj_room.rect.left < room.rect.right and
                         adj_room.rect.right > room.rect.left):
@@ -282,7 +125,7 @@ class Spaceship:
                                 (connected_tiles[0].rect.centerx + connected_tiles[1].rect.centerx )/2, 
                                 (connected_tiles[0].rect.centery + connected_tiles[1].rect.centery)/2
                                 )
-                    Door(door_coords, textures["door"], self.doors)
+                    Door(door_coords, self.doors)
                 elif (room.rect.bottom == adj_room.rect.top and
                         adj_room.rect.left < room.rect.right and
                         adj_room.rect.right > room.rect.left):
@@ -293,4 +136,4 @@ class Spaceship:
                                 (connected_tiles[0].rect.centerx + connected_tiles[1].rect.centerx )/2, 
                                 (connected_tiles[0].rect.centery + connected_tiles[1].rect.centery)/2
                                 )
-                    Door(door_coords, textures["door"], self.doors)
+                    Door(door_coords, self.doors)

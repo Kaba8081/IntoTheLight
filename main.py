@@ -7,8 +7,6 @@ from modules.display import Display
 from modules.player import Player
 from modules.enemy import Enemy
 
-PATH = os.path.dirname(os.path.realpath(__file__))
-
 def load_config() -> dict:
     with open("config.json", "r", encoding="utf-8-sig") as file:
         return json.load(file)
@@ -33,10 +31,11 @@ def main() -> None:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+                mouse_clicked = pg.mouse.get_pressed()
+                player.update(dt, mouse_pos, mouse_clicked)
         
-        for room in player.rooms:
-            room.update(mouse_pos, mouse_clicked)
-
+        player.update(dt, mouse_pos)
         display.draw()
 
         pg.display.flip()

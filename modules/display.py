@@ -48,8 +48,8 @@ class Display:
             (self.screen.get_height()) / 2
             )
         self.enemy.move_by_distance((
-            new_player_center[0] - player_center[0],
-            new_player_center[1] - player_center[1]
+            new_enemy_center[0] - enemy_center[0],
+            new_enemy_center[1] - enemy_center[1]
             ))
         self.enemy.find_bordering_rooms()
 
