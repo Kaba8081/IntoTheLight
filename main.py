@@ -23,6 +23,7 @@ def main() -> None:
     dt = 0
 
     player = Player()
+    display = Display(screen, 0.5, player)
 
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()
@@ -33,9 +34,11 @@ def main() -> None:
         
         for room in player.rooms:
             room.update(mouse_pos, mouse_clicked)
-        player.draw(screen)    
+
+        display.draw()
 
         pg.display.flip()
+        screen.fill((0,0,0))
         dt = clock.tick(60) / 1000 # cap the game's framerate at 60 fps
  
 if __name__ == "__main__":
