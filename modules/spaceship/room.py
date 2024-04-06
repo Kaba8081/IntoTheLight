@@ -1,10 +1,11 @@
 import pygame as pg
 from os import path
 
-from modules.tile import Tile
+from modules.spaceship.tile import Tile
+from modules.spaceship.upgrades import *
 
 file_path = path.dirname(path.realpath(__file__))
-texture_path = path.abspath(path.join(file_path, ".."))
+texture_path = path.abspath(path.join(path.join(file_path, ".."),".."))
 texture_path = path.join(texture_path, "content")
 texture_path = path.join(texture_path, "textures")
 
@@ -16,13 +17,17 @@ textures = {
     "o2": pg.transform.scale(pg.image.load(path.join(texture_path,"oxygen.png")),(24,24)),
     "cameras": pg.transform.scale(pg.image.load(path.join(texture_path,"camera.png")),(24,24)),
     "bridge": pg.transform.scale(pg.image.load(path.join(texture_path,"bridge.png")),(24,24)),
+    "shields": None,
+    "upgrade_slot": pg.image.load(path.join(texture_path,"upgrade_slot.png")),
 }
 
 class Room(pg.sprite.Group):
     def __init__(self, 
-                 pos: tuple, 
+                 pos: tuple[int, int], 
                  room_layout: list,
-                 role: str = None
+                 role: str = None,
+                 upgrade_slots: dict[str, str] = {},
+                 enemy_ship: bool = False
                  ) -> None:
         pg.sprite.Group.__init__(self)
         self.rect = pg.Rect(
@@ -31,9 +36,14 @@ class Room(pg.sprite.Group):
 
         self.pos = pos
         self.room_layout = room_layout
-        self.role = role if role else None
-        self.icon = textures[self.role] if self.role else None
+        self.role = role if role is not None else None
+        self.icon = None
+        if self.role is not None:
+            self.icon = textures[self.role]
+            self.icon = pg.transform.flip(self.icon, True, False) if enemy_ship else self.icon
         self.adjecent_rooms = {} # room class : connected tiles
+        self.upgrade_slots = {}
+
         self.selected = False
         self.hovering = False
 
@@ -42,7 +52,14 @@ class Room(pg.sprite.Group):
                 tile = Tile(self.pos, (x, y), textures["tile_default"], self)
                 self.add(tile)
 
-    def update(self, mouse_pos: tuple, mouse_clicked: bool) -> None:
+        for index, upgrade in enumerate(upgrade_slots):
+            if type(upgrade_slots[upgrade]) is str:
+                self.place_upgrade(index, upgrade, upgrade_slots[upgrade])
+            else:
+                for orientation in upgrade_slots[upgrade]:
+                    self.place_upgrade(index, upgrade, orientation)
+
+    def update(self, mouse_pos: tuple[int, int], mouse_clicked: bool) -> None:
         if self.rect.collidepoint(mouse_pos):
             if mouse_clicked[0]:
                 self.selected = True
@@ -59,7 +76,8 @@ class Room(pg.sprite.Group):
     def draw(self, screen) -> None:
         sprites = self.sprites()
 
-        for spr in sprites: # draw all tiles
+        # draw all sprites in the room
+        for spr in sprites:
             self.spritedict[spr] = screen.blit(spr.image, spr.rect)
         
         # draw room outline
@@ -83,8 +101,9 @@ class Room(pg.sprite.Group):
             ],
             4
         )
-            
-        if self.icon: # draw icon if the room has a role
+
+        # draw icon if the room has a role
+        if self.icon is not None:
             screen.blit(self.icon, 
                         (self.rect.centerx-(self.icon.get_width()/2), 
                          self.rect.centery-(self.icon.get_height()/2))
@@ -92,12 +111,26 @@ class Room(pg.sprite.Group):
         
         # darken the room if selected or hovering
         if self.selected: 
-            s = pg.Surface((32,32), pg.SRCALPHA) 
-            s.fill((0,0,0,128)) 
-            for spr in sprites:
-                screen.blit(s, spr.rect)
+            s = pg.Surface((self.rect.width, self.rect.height), pg.SRCALPHA) 
+            s.fill((0,0,0,128))
+            screen.blit(s, self.rect)
         elif self.hovering:
-            s = pg.Surface((32,32), pg.SRCALPHA) 
+            s = pg.Surface((self.rect.width, self.rect.height), pg.SRCALPHA) 
             s.fill((0,0,0,64)) 
-            for spr in sprites:
-                screen.blit(s, spr.rect)
+            screen.blit(s, self.rect)
+    
+    def place_upgrade(self, index: int, upgrade_type: str, orientation: str) -> None:
+        # TODO: check upgrade_type and create correspoding class
+        upgrade_pos = None
+
+        match orientation:
+            case "top":
+                upgrade_pos = (self.rect.centerx, self.rect.y)
+            case "right":
+                upgrade_pos = (self.rect.right, self.rect.centery)
+            case "bottom":
+                upgrade_pos = (self.rect.centerx, self.rect.bottom)
+            case "left":
+                upgrade_pos = (self.rect.x, self.rect.centery)
+        
+        self.upgrade_slots[index] = UpgradeSlot(upgrade_pos, orientation, textures["upgrade_slot"], self)

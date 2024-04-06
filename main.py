@@ -5,6 +5,7 @@ import os
 
 from modules.display import Display
 from modules.player import Player
+from modules.enemy import Enemy
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
@@ -23,7 +24,8 @@ def main() -> None:
     dt = 0
 
     player = Player()
-    display = Display(screen, 0.5, player)
+    enemy = Enemy()
+    display = Display(screen, 0.5, player, enemy)
 
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()

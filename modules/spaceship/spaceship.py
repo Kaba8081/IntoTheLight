@@ -1,8 +1,9 @@
 import pygame as pg
 from os import path
 
-from modules.room import Room
-from modules.door import Door
+from modules.spaceship.room import Room
+from modules.spaceship.door import Door
+from modules.spaceship.upgrades import *
 
 ship_layouts = {
     "cruiser": 
@@ -30,7 +31,7 @@ ship_layouts = {
             "role": "medbay",
             "upgrade_slots":{
                 "weapon": "top",
-                #"shield": "front"
+                "shield": "right"
             }
         },
         {
@@ -64,10 +65,95 @@ ship_layouts = {
             "role": "bridge"
         }
         ]
+    },
+    "scout":{
+        "rooms":[
+            {
+                "pos": (0, 2),
+                "tiles": [[1,1]],
+                "upgrade_slots":{
+                    "thruster": "left"
+                }
+            },
+            {
+                "pos": (1, 1),
+                "tiles": [[1],[1]],
+                "role": "o2"
+            },
+            {
+                "pos": (1, 2),
+                "tiles": [[1,1],[1,1]],
+                "role": "engines",
+            },
+            {
+                "pos": (1, 4),
+                "tiles": [[1],[1]],
+            },
+            {
+                "pos": (3, 1),
+                "tiles": [[1],[1]]
+            },
+            {
+                "pos": (3, 4),
+                "tiles": [[1],[1]],
+            },
+            {
+                "pos": (4, 2),
+                "tiles": [[1,1],[1,1]],
+                "role": "weapons"
+            },
+            {
+                "pos": (6, 0),
+                "tiles": [[1],[1]],
+            },
+            {
+                "pos": (6, 1),
+                "tiles": [[1,1],[1,1]],
+            },
+            {
+                "pos": (6, 3),
+                "tiles": [[1,1],[1,1]],
+            },
+            {
+                "pos": (6, 5),
+                "tiles": [[1],[1]],
+            },
+            {
+                "pos": (8, 1),
+                "tiles": [[1,1],[1,1]],
+                "role": "medbay"
+            },
+            {
+                "pos": (8, 3),
+                "tiles": [[1,1],[1,1]],
+                "role": "shields"
+            },
+            {
+                "pos": (10, 2),
+                "tiles": [[1],[1]],
+            },
+            {
+                "pos": (10, 3),
+                "tiles": [[1],[1]],
+                "role": "cameras"
+            },
+            {
+                "pos": (12, 2),
+                "tiles": [[1,1],[1,1]],
+                "upgrade_slots":{
+                    "weapon": ["top","bottom"]
+                }
+            },
+            {
+                "pos": (14, 2),
+                "tiles": [[1,1]],
+                "role": "bridge"
+            }
+        ]
     }
 }
 file_path = path.dirname(path.realpath(__file__))
-texture_path = path.abspath(path.join(file_path, ".."))
+texture_path = path.abspath(path.join(path.join(file_path, ".."),".."))
 texture_path = path.join(texture_path, "content")
 texture_path = path.join(texture_path, "textures")
 textures = {
@@ -75,14 +161,16 @@ textures = {
 }
 
 class Spaceship:
-    def __init__(self, ship_type: str) -> None:
+    def __init__(self, ship_type: str, enemy: bool = False) -> None:
         self.rooms = []
         self.doors = pg.sprite.Group()
         for room in ship_layouts[ship_type]["rooms"]:
             self.rooms.append(Room(
                 room["pos"], 
                 room["tiles"],
-                room["role"] if "role" in room else None)
+                room["role"] if "role" in room else None,
+                room["upgrade_slots"] if "upgrade_slots" in room else {},
+                enemy_ship = enemy)
                 )
     
     def update(self, dt: float) -> None:
@@ -94,7 +182,7 @@ class Spaceship:
 
         self.doors.draw(screen)
 
-    def get_center(self) -> tuple:
+    def get_center(self) -> tuple[int, int]:
         """Return the center of the spaceship in pixels."""
 
         lowest_x = None
@@ -119,7 +207,7 @@ class Spaceship:
         
         return ((highest_x + lowest_x)/2, (highest_y + lowest_y)/2)
 
-    def move_by_distance(self, distance: tuple) -> None:
+    def move_by_distance(self, distance: tuple[int, int]) -> None:
         """Move the spaceship by a distance in pixels."""
 
         for room in self.rooms:

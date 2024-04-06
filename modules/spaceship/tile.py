@@ -8,6 +8,7 @@ class Tile(pg.sprite.Sprite):
                  sprite_group: pg.sprite.Group
                  ) -> None:
         pg.sprite.Sprite.__init__(self, sprite_group)
+        
         self.image = texture
         self.rect = self.image.get_rect()
 
