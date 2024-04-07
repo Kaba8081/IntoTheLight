@@ -10,9 +10,10 @@ class Room(pg.sprite.Group):
     def __init__(self, 
                  pos: tuple[int, int], 
                  room_layout: list,
-                 role: str = None,
                  upgrade_slots: dict[str, str] = {},
-                 enemy_ship: bool = False
+                 role: str = None,
+                 level: int = None,
+                 enemy_ship: bool = False,
                  ) -> None:
         pg.sprite.Group.__init__(self)
         self.rect = pg.Rect(
@@ -21,11 +22,6 @@ class Room(pg.sprite.Group):
         
         self.pos = pos
         self.room_layout = room_layout
-        self.role = role if role is not None else None
-        self.icon = None
-        if self.role is not None:
-            self.icon = textures[self.role]
-            self.icon = pg.transform.flip(self.icon, True, False) if enemy_ship else self.icon
         self.adjecent_rooms = {} # room class : connected tiles
         self.upgrade_slots = {}
         self._upgrade_index = 0
@@ -41,6 +37,15 @@ class Room(pg.sprite.Group):
         for upgrade_type in upgrade_slots:
             for orientation in upgrade_slots[upgrade_type]:
                 self.place_upgrade(upgrade_type, orientation, upgrade_slots[upgrade_type][orientation])
+        
+        # check if the room has a role (is a system room)
+        self.role = role if role is not None else None
+        self.level = level if level is not None else 0
+        self.icon = None
+        if self.role is not None:
+            self.icon = textures[self.role]
+            self.icon = pg.transform.flip(self.icon, True, False) if enemy_ship else self.icon
+            self._power = 0
 
     def update(self, mouse_pos: tuple[int, int], mouse_clicked: bool) -> None:
         if self.rect.collidepoint(mouse_pos):
@@ -158,3 +163,50 @@ class Room(pg.sprite.Group):
                 thrusters.append(self.upgrade_slots[slot])
         
         return thrusters if len(thrusters) > 0 else None
+
+    @property
+    def max_power(self) -> int:
+        """Return the maximum power that can be used in the room."""
+
+        try:
+            match self.role:
+                # rooms where the power level is the same as the room level
+                case "weapons" | "thrusters" | "medbay" | "o2" | "engines":
+                    return self.level
+                
+                case "shields":
+                    return self.level * 2
+                
+                # room has no or unknown role
+                case _:
+                    raise ValueError
+        except ValueError:
+            print("Could not return max_power: Room is not a system room!")
+            return 0
+    
+    @property
+    def power(self) -> int:
+        """Return the current power used in the room."""
+
+        if hasattr(self, "_power") and self.role is not None:
+            return self._power
+        else:
+            print("Could not return max_power: Room is not a system room or _power has not been set!")
+            return 0
+        
+    @power.setter
+    def power(self, value: int) -> None:
+        """
+        Set the power level of the room.
+        :param value: int - the new power level
+        """
+
+        if hasattr(self, "_power") and self.role is not None:
+            if value >=0 and value < self.max_power:
+                self._power = value
+            else:
+                print("Could not set power: Power level is out of range!")
+        else:
+            print("Could not set power: Room is not a system room!")
+
+        return

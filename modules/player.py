@@ -2,12 +2,55 @@ import pygame as pg
 from typing import Union
 
 from modules.spaceship.spaceship import *
+from modules.resources import ship_layouts, systems
 
 class Player(Spaceship):
     def __init__(self, 
                  ship_type: str = "scout"
                  ) -> None:
-        Spaceship.__init__(self, ship_type)
+        
+        self.installed_systems = {}
+
+        # required systems
+        self._room_enine = None
+        self._room_weapons = None
+        self._room_oxygen = None
+        self._room_bridge = None
+
+        # required data about these systems
+        self.installed_weapons = {}
+        self.installed_thrusters = {}
+        
+        self.hull_hp = 100
+        self.fuel = 16
+        self.missles = 8
+        self.drone_parts = 2
+        self.currency = 10
+
+        self.rooms = []
+        self.doors = pg.sprite.Group()
+
+        for room in ship_layouts[ship_type]["rooms"]:
+            created_room = Room(
+                room["pos"], 
+                room["tiles"],
+                role=room["role"] if "role" in room else None,
+                level=room["level"] if "level" in room else 0,
+                upgrade_slots=room["upgrade_slots"] if "upgrade_slots" in room else {},
+                )
+            self.rooms.append(created_room)
+
+            if "role" in room and room["role"] in systems:
+                self.installed_systems[room["role"]] = created_room
+        
+        for system_name in systems:
+            match system_name:
+                case "engines":
+                    self._room_enine = self.installed_systems[system_name]
+                case "weapons":
+                    pass
+                case "thrusters":
+                    pass
     
     def update(self, dt: float, mouse_pos: tuple[int, int], mouse_clicked: list = None) -> None:
         for door in self.doors:
@@ -45,3 +88,37 @@ class Player(Spaceship):
                 thrusters.append(room_thrusters)
             
         return thrusters if len(thrusters) > 0 else None
+
+    @property
+    def max_power(self) -> int:
+        """Return the maximum power that the ship generates."""
+
+        return self._room_enine.level * 2 # each level of the engine provides 2 power
+
+    @property
+    def current_power(self) -> int:
+        """Return the current power usage of the ship."""
+
+        power_level = 0
+        for system in self.installed_systems:
+            power_level += self.installed_systems[system].power
+        return power_level
+
+    def toggle_system_power(self, value: tuple[str, bool]) -> None:
+        """ 
+        Toggles the power level of a system. 
+
+        :param value: tuple[str, bool] - the name of the system and whether add/remove power (True/False)
+        """
+
+        system_name, action = value
+        for installed_system_name in self.installed_systems.keys():
+            if installed_system_name == system_name:
+                room = self.installed_systems[installed_system_name]
+
+                if action:
+                    room.power += 1
+                else:
+                    room.power -= 1
+
+                return

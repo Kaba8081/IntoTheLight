@@ -14,9 +14,9 @@ class Spaceship:
             self.rooms.append(Room(
                 room["pos"], 
                 room["tiles"],
-                room["role"] if "role" in room else None,
-                room["upgrade_slots"] if "upgrade_slots" in room else {},
-                enemy_ship = enemy)
+                role=room["role"] if "role" in room else None,
+                upgrade_slots=room["upgrade_slots"] if "upgrade_slots" in room else {},
+                enemy_ship=enemy)
                 )
 
     def draw(self, screen: pg.Surface) -> None:

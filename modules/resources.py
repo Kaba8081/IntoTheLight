@@ -51,6 +51,7 @@ ship_layouts = {
             "pos": (0, 4),
             "tiles": [[1,1,1],[1,1,1],[1,1,1]],
             "role": "engines",
+            "level": 1,
             "upgrade_slots":{
                 "thruster": {"left": "thruster_mk1"}
             }
@@ -92,6 +93,7 @@ ship_layouts = {
                 "pos": (1, 2),
                 "tiles": [[1,1],[1,1]],
                 "role": "engines",
+                "level": 1,
             },
             {
                 "pos": (1, 4),
@@ -171,7 +173,7 @@ textures = {
     },
     "tile_default": load_texture("tile1.png"),
 
-    # room icons
+    # system ship icons
     "engines": load_texture("engine.png",(24,24)),
     "weapons": load_texture("weapons.png",(24,24)),
     "medbay": load_texture("medbay.png",(24,24)),
@@ -206,5 +208,26 @@ textures = {
             "idle": load_texture("thruster_mk1_idle.png"),
             "active": load_texture("thruster_mk1_active.png")
         }
-    }
+    },
+
+    # ui elements
+    "engines_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
+    "weapons_icon": None,
+    "medbay_icon": None,
+    "o2_icon": None,
+    "cameras_icon": None,
+    "bridge_icon": None,
+    "shields_icon": None,
+
+    "engine_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
 }
+
+systems = [
+    "engines",
+    "weapons", 
+    "medbay", 
+    "o2", 
+    "cameras", 
+    "bridge", 
+    "shields"
+]

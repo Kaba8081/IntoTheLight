@@ -23,7 +23,7 @@ def main() -> None:
 
     player = Player()
     enemy = Enemy()
-    display = Display(screen, 0.5, player, enemy)
+    display = Display(screen, resolution, 0.5, player, enemy)
 
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()
@@ -36,6 +36,7 @@ def main() -> None:
                 player.update(dt, mouse_pos, mouse_clicked)
         
         player.update(dt, mouse_pos)
+        display.update()
         display.draw()
 
         pg.display.flip()

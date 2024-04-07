@@ -3,13 +3,26 @@ import pygame as pg
 from modules.spaceship.spaceship import Spaceship
 from modules.player import Player
 from modules.enemy import Enemy
+from modules.ui import InterfaceController
 
 class Display:
     def __init__(self, 
                  screen: pg.Surface, 
+                 resolution: tuple[int, int],
                  ratio: float = 0.5, # player side / enemy side ratio
                  *args,
                  ) -> None:
+        
+        for arg in args:
+            if isinstance(arg, Player):
+                self.player = arg
+            elif isinstance(arg, Enemy):
+                self.enemy = arg
+
+        if not hasattr(self, "player"):
+            print("Player was not passed to display class!")
+
+        self._interface = InterfaceController(resolution, args[0])
         self.screen = screen
         self.ratio = ratio
 
@@ -21,15 +34,6 @@ class Display:
             screen.get_width() - (screen.get_width() * self.ratio),
             screen.get_height()
             ))
-
-        for arg in args:
-            if isinstance(arg, Player):
-                self.player = arg
-            elif isinstance(arg, Enemy):
-                self.enemy = arg
-        
-        if not hasattr(self, "player"):
-            print("Player was not passed to display class!")
 
         player_center = self.player.get_center()
         new_player_center = (
@@ -53,6 +57,9 @@ class Display:
             ))
         self.enemy.find_bordering_rooms()
 
+    def update(self) -> None:
+        self._interface.update()
+
     def draw(self) -> None:
         self.player.draw(self.player_screen)
         self.enemy.draw(self.enemy_screen)
@@ -67,5 +74,6 @@ class Display:
                 (self.screen.get_width() * self.ratio, self.screen.get_height()), 
                 2)
         
+        self._interface.draw(self.screen)
         self.player_screen.fill((0,0,0))
         self.enemy_screen.fill((0,0,0))
