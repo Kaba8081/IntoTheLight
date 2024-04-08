@@ -44,7 +44,6 @@ class Player(Spaceship):
                 self.installed_systems[room["role"]] = created_room
         
         # find and power essential systems
-        print(self.installed_systems.keys())
         for system_name in systems:
             match system_name:
                 case "engines":

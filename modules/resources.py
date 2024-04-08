@@ -94,7 +94,7 @@ ship_layouts = {
                 "pos": (1, 2),
                 "tiles": [[1,1],[1,1]],
                 "role": "engines",
-                "level": 1,
+                "level": 3,
             },
             {
                 "pos": (1, 4),
@@ -218,14 +218,20 @@ textures = {
 
     # ui elements
     "engines_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
-    "weapons_icon": None,
-    "medbay_icon": None,
-    "o2_icon": None,
-    "cameras_icon": None,
-    "bridge_icon": None,
-    "shields_icon": None,
+    "weapons_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
+    "medbay_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
+    "o2_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
+    "cameras_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
+    "bridge_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
+    "shields_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
 
-    "engine_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "engines_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "weapons_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "medbay_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "o2_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "cameras_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "bridge_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "shields_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
 }
 
 systems = [
