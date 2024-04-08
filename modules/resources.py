@@ -87,7 +87,8 @@ ship_layouts = {
             {
                 "pos": (1, 1),
                 "tiles": [[1],[1]],
-                "role": "o2"
+                "role": "o2",
+                "level": 1
             },
             {
                 "pos": (1, 2),
@@ -110,7 +111,8 @@ ship_layouts = {
             {
                 "pos": (4, 2),
                 "tiles": [[1,1],[1,1]],
-                "role": "weapons"
+                "role": "weapons",
+                "level": 2
             },
             {
                 "pos": (6, 0),
@@ -131,12 +133,14 @@ ship_layouts = {
             {
                 "pos": (8, 1),
                 "tiles": [[1,1],[1,1]],
-                "role": "medbay"
+                "role": "medbay",
+                "level": 1
             },
             {
                 "pos": (8, 3),
                 "tiles": [[1,1],[1,1]],
-                "role": "shields"
+                "role": "shields",
+                "level": 1
             },
             {
                 "pos": (10, 2),
@@ -145,7 +149,8 @@ ship_layouts = {
             {
                 "pos": (10, 3),
                 "tiles": [[1],[1]],
-                "role": "cameras"
+                "role": "cameras",
+                "level": 1
             },
             {
                 "pos": (12, 2),
@@ -160,7 +165,8 @@ ship_layouts = {
             {
                 "pos": (14, 2),
                 "tiles": [[1,1]],
-                "role": "bridge"
+                "role": "bridge",
+                "level": 1
             }
         ]
     }

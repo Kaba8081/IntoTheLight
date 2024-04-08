@@ -13,6 +13,14 @@ class InterfaceController(pg.sprite.Group):
         self._player_power_max = player.max_power
         self._player_power_current = self._player_power_max
     
+    def _draw_power(self) -> None:
+        coords = (16, self.resolution[1]-32)
+        for i in range(0, self._player_power_max):
+            if i < self._player_power_current:
+                pg.draw.rect(self.surface, (106, 190, 48), (coords[0], coords[1] - i * 20, 32, 16))
+            else:
+                pg.draw.rect(self.surface, (132, 126, 135), (coords[0], coords[1] - i * 20, 32, 16), 2)
+
     def update(self) -> None:
         self._player_power_current = self.player.current_power
 
@@ -22,6 +30,7 @@ class InterfaceController(pg.sprite.Group):
             sprite.draw(self.surface)
 
         # draw rect's
+        self._draw_power()
 
     def draw(self, screen: pg.surface.Surface) -> None:
         screen.blit(self.surface, (0,0))

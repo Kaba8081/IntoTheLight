@@ -169,9 +169,11 @@ class Room(pg.sprite.Group):
         """Return the maximum power that can be used in the room."""
 
         try:
+            if self.level is None or self.role is None:
+                raise AttributeError
             match self.role:
                 # rooms where the power level is the same as the room level
-                case "weapons" | "thrusters" | "medbay" | "o2" | "engines":
+                case "weapons" | "thrusters" | "medbay" | "o2" | "engines" | "bridge" | "cameras":
                     return self.level
                 
                 case "shields":
@@ -182,6 +184,9 @@ class Room(pg.sprite.Group):
                     raise ValueError
         except ValueError:
             print("Could not return max_power: Room is not a system room!")
+            return 0
+        except AttributeError:
+            print("Could not return max_power: Room level or role has not been set!")
             return 0
     
     @property
@@ -202,10 +207,10 @@ class Room(pg.sprite.Group):
         """
 
         if hasattr(self, "_power") and self.role is not None:
-            if value >=0 and value < self.max_power:
+            if value >=0 and value <= self.max_power:
                 self._power = value
             else:
-                print("Could not set power: Power level is out of range!")
+                print(f"Could not set power: Power level is out of range! (role: {self.role}, {value}/{self.max_power})")
         else:
             print("Could not set power: Room is not a system room!")
 

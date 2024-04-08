@@ -43,14 +43,23 @@ class Player(Spaceship):
             if "role" in room and room["role"] in systems:
                 self.installed_systems[room["role"]] = created_room
         
+        # find and power essential systems
+        print(self.installed_systems.keys())
         for system_name in systems:
             match system_name:
                 case "engines":
                     self._room_enine = self.installed_systems[system_name]
+                    self._room_enine.power = 1
                 case "weapons":
-                    pass
-                case "thrusters":
-                    pass
+                    self._room_weapons = self.installed_systems[system_name]
+                case "medbay":
+                    self._room_medbay = self.installed_systems[system_name]
+                case "o2":
+                    self._room_oxygen = self.installed_systems[system_name]
+                    self._room_oxygen.power = 1
+                case "bridge":
+                    self._room_bridge = self.installed_systems[system_name]
+                    self._room_bridge.power = 1
     
     def update(self, dt: float, mouse_pos: tuple[int, int], mouse_clicked: list = None) -> None:
         for door in self.doors:
@@ -93,7 +102,7 @@ class Player(Spaceship):
     def max_power(self) -> int:
         """Return the maximum power that the ship generates."""
 
-        return self._room_enine.level * 2 # each level of the engine provides 2 power
+        return 6 + self._room_enine.level * 2 # base generation 6 + each level of the engine provides 2 power
 
     @property
     def current_power(self) -> int:
