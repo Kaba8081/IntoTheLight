@@ -31,9 +31,12 @@ def main() -> None:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
-            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == pg.MOUSEBUTTONDOWN:
                 mouse_clicked = pg.mouse.get_pressed()
-                player.update(dt, mouse_pos, mouse_clicked)
+                print(mouse_clicked)
+                display.update_mouse(mouse_pos, mouse_clicked)
+                if event.button == 1:
+                    player.update(dt, mouse_pos, mouse_clicked)
         
         player.update(dt, mouse_pos)
         display.update()

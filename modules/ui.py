@@ -29,10 +29,12 @@ class InterfaceController(pg.sprite.Group):
         color_on = (106, 190, 48)
         color_off = (132, 126, 135)
 
+        curr_power = self._player_power_max - self._player_power_current
+
         # draw ship's power bar
         coords = (16, self.resolution[1]-32)
         for i in range(0, self._player_power_max):
-            if i < self._player_power_current: # draw full bar
+            if i < curr_power: # draw full bar
                 pg.draw.rect(self.surface, color_on, (coords[0], coords[1] - i * 20, 32, 16))
             else: # draw empty bar
                 pg.draw.rect(self.surface, color_off, (coords[0], coords[1] - i * 20, 32, 16), 2)
@@ -52,6 +54,12 @@ class InterfaceController(pg.sprite.Group):
                 else: # draw empty bar
                     pg.draw.rect(self.surface, color_off, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16), 2)
 
+    def update_mouse(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
+        # handle user input
+        for icon in self._installed_systems_icon_bar:
+            if icon.rect.collidepoint(mouse_pos):
+                icon.toggle(mouse_clicked)
+
     def update(self) -> None:
         self._player_power_current = self.player.current_power
         self.surface = pg.Surface(self.resolution, pg.SRCALPHA)
@@ -59,6 +67,7 @@ class InterfaceController(pg.sprite.Group):
         # draw texture sprites
         for sprite in self.sprites():
             sprite.draw(self.surface)
+        self._installed_systems_icon_bar.update()
 
         self._draw_power()
         self._installed_systems_icon_bar.draw(self.surface)
@@ -73,6 +82,7 @@ class PowerIcon(pg.sprite.Sprite):
                  coords: tuple[int, int],
                  group: pg.sprite.Group) -> None:
         pg.sprite.Sprite.__init__(self, group)
+        self._room_obj = room_obj
         self.powered = powered
         self.system_name = system_name
         self.coords = coords
@@ -80,10 +90,20 @@ class PowerIcon(pg.sprite.Sprite):
         self.image = textures["{system}_icon_{state}".format(system=self.system_name, state="on" if powered else "off")]
         self.rect = self.image.get_rect(topleft=self.coords)
 
-    def update(self, power: int) -> None:
+    def update(self) -> None:
         """Update the power icon based on the power level of the system."""
+        power = self._room_obj.power
         self.image = textures["{system}_icon_{state}".format(system=self.system_name, state="on" if power > 0 else "off")]
 
     def draw(self, surface: pg.surface.Surface) -> None:
         """Draw the power icon to the provided pygame.surface.Surface"""
         surface.blit(self.image, self.rect)
+
+    def toggle(self, mouse_clicked: tuple[int, int, int]) -> None:
+        """Update the corresponding system power level based on user input."""
+        if mouse_clicked[0]: # add power if possible
+            self._room_obj.power += 1
+        elif mouse_clicked[2]: # remove power if possible
+            self._room_obj.power -= 1
+
+        return
