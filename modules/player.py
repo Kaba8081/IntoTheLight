@@ -78,14 +78,14 @@ class Player(Spaceship):
         return empty_slots if len(empty_slots) > 0 else None
 
     @property
-    def weapons(self) -> Union[list, None]:
+    def weapons(self) -> list:
         weapons = []
         for room in self.rooms:
             room_weapons = room.weapons
             if room_weapons is not None:
                 weapons.append(room_weapons)
             
-        return weapons if len(weapons) > 0 else None
+        return weapons
     
     @property
     def thrusters(self) -> Union[list, None]:

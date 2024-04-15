@@ -4,7 +4,7 @@ from os import path
 from modules.spaceship.room import Room
 from modules.spaceship.door import Door
 from modules.spaceship.upgrades import *
-from modules.resources import textures, ship_layouts
+from modules.resources import ship_layouts
 
 class Spaceship:
     def __init__(self, ship_type: str, enemy: bool = False) -> None:

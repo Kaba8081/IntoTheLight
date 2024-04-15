@@ -13,6 +13,7 @@ class UpgradeSlot(pg.sprite.Sprite):
         pg.sprite.Sprite.__init__(self, sprite_group)
 
         if purpose is not None:
+            # purpose is a string that describes only the upgrade slot
             self.purpose = purpose
 
         if orientation == "top":
@@ -44,18 +45,26 @@ class Weapon(UpgradeSlot):
     def __init__(self, 
                  pos: tuple[int, int], 
                  orientation: str,
-                 weapon_type: str,
+                 weapon_name: str,
                  sprite_group: pg.sprite.Group,
                  ) -> None:
-        
-        self.weapon_type = weapon_type
 
-        self.txt_set = textures["weaponry"][weapon_type]
-        self.anim_idle = self.txt_set["off"]
-        self.anim_charge = [frame for frame in self.txt_set["charge"]]
-        self.anim_ready = self.txt_set["ready"]
+        self._txt_set = textures["weaponry"][weapon_name]
+        self._anim_idle = self._txt_set["off"]
+        self._anim_charge = [frame for frame in self._txt_set["charge"]]
+        self._anim_ready = self._txt_set["ready"]
 
-        UpgradeSlot.__init__(self, pos, orientation, self.anim_idle, sprite_group)
+        self.weapon_name = weapon_name
+        self.state = "off" # off | charge | ready
+        UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
+
+    def __str__(self) -> str:
+        """Return the name of the weapon."""
+        return self.weapon_name
+
+    def __bool__(self) -> bool:
+        """Return True if the weapon is ready to fire."""
+        return self.state == "ready"
 
 class Thruster(UpgradeSlot):
     def __init__(self, 

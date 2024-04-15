@@ -12,8 +12,9 @@ class InterfaceController(pg.sprite.Group):
         self.player = player
 
         self._installed_systems_icon_bar = pg.sprite.Group()
-        for index, system_name in enumerate(self.player.installed_systems):
-            coords = (64 + 36 * index, self.resolution[1]-32)
+        coords = [28, self.resolution[1]-32]
+        for system_name in self.player.installed_systems:
+            coords [0] += 36
             system = self.player.installed_systems[system_name]
             powered = True if system.power>0 else False
 
@@ -22,6 +23,9 @@ class InterfaceController(pg.sprite.Group):
 
         self._player_power_max = player.max_power
         self._player_power_current = self._player_power_max
+
+        coords[0] += 72
+        self._weapons_bar = WeaponsBar(player, coords)
     
     def _draw_power(self) -> None:
         """Draws every element of the power bar"""
@@ -53,7 +57,15 @@ class InterfaceController(pg.sprite.Group):
                     pg.draw.rect(self.surface, color_on, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16))
                 else: # draw empty bar
                     pg.draw.rect(self.surface, color_off, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16), 2)
+        return
+    
+    def _draw_weapons(self) -> None:
+        """Draws the weapons interface on the screen"""
+        
+        self._weapons_bar.draw(self.surface)
 
+        return
+    
     def update_mouse(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
         # handle user input
         for icon in self._installed_systems_icon_bar:
@@ -71,6 +83,9 @@ class InterfaceController(pg.sprite.Group):
 
         self._draw_power()
         self._installed_systems_icon_bar.draw(self.surface)
+
+        self._weapons_bar.update()
+        self._draw_weapons()
 
     def draw(self, screen: pg.surface.Surface) -> None:
         screen.blit(self.surface, (0,0))
@@ -107,3 +122,48 @@ class PowerIcon(pg.sprite.Sprite):
             self._room_obj.power -= 1
 
         return
+    
+    def __str__(self) -> str:
+        return self.system_name
+
+class WeaponsBar():
+    def __init__(self, player: Player, coords: tuple[int, int]) -> None:
+        self._player = player
+
+        self._bar_module_size = 4
+        self._bar_gap = 2
+        self._bar_module_width = 126
+        self._bar_module_height = 64
+
+        self._bar_width = ((self._bar_module_width + self._bar_gap) * self._bar_module_size)
+        self._bar_height = self._bar_module_height + 48
+        self._bar_surface = pg.Surface((self._bar_width+self._bar_gap, self._bar_height+self._bar_gap), pg.SRCALPHA)
+        self._bar_coords = (coords[0], coords[1]-self._bar_height)
+        self._color_disabled = (135, 135, 135)
+        self._color_selected = (247, 198, 74)
+        self._color_ready = (135, 247, 104)
+
+        self.weapons = self._player.weapons
+
+    def update(self) -> None:
+        pass
+
+    def draw(self, screen: pg.surface.Surface) -> None:
+        pg.draw.lines(
+            self._bar_surface,
+            (255,255,255),
+            True,
+            [
+                (0,48),
+                (self._bar_width, 48),
+                (self._bar_width, 48),
+                (self._bar_width, self._bar_height),
+                (self._bar_width, self._bar_height),
+                (0, self._bar_height),
+                (0, self._bar_height),
+                (0, 48)
+            ],
+            self._bar_gap
+        )
+
+        screen.blit(self._bar_surface, self._bar_coords)

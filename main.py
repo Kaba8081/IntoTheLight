@@ -23,7 +23,7 @@ def main() -> None:
 
     player = Player()
     enemy = Enemy()
-    display = Display(screen, resolution, 0.5, player, enemy)
+    display = Display(screen, resolution, 0.6, player, enemy)
 
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()
@@ -33,7 +33,6 @@ def main() -> None:
                 return
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse_clicked = pg.mouse.get_pressed()
-                print(mouse_clicked)
                 display.update_mouse(mouse_pos, mouse_clicked)
                 if event.button == 1:
                     player.update(dt, mouse_pos, mouse_clicked)
@@ -44,7 +43,7 @@ def main() -> None:
 
         pg.display.flip()
         screen.fill((0,0,0))
-        dt = clock.tick(60) / 1000 # cap the game's framerate at 60 fps
+        dt = clock.tick(69) / 1000 # cap the game's framerate at 60 fps
  
 if __name__ == "__main__":
     main()
