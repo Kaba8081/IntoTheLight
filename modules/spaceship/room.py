@@ -15,6 +15,7 @@ class Room(pg.sprite.Group):
                  level: int = None,
                  enemy_ship: bool = False,
                  ) -> None:
+        
         pg.sprite.Group.__init__(self)
         self.rect = pg.Rect(
             (pos[0]*32, pos[1]*32), 
@@ -44,7 +45,7 @@ class Room(pg.sprite.Group):
         self.icon = None
         if self.role is not None:
             self.icon = textures[self.role]
-            self.icon = pg.transform.flip(self.icon, True, False) if enemy_ship else self.icon
+            self.icon = pg.transform.rotate(self.icon, 90) if enemy_ship else self.icon
             self._power = 0
 
     def update(self, mouse_pos: tuple[int, int], mouse_clicked: bool) -> None:
