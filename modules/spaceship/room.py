@@ -45,7 +45,7 @@ class Room(pg.sprite.Group):
         self.icon = None
         if self.role is not None:
             self.icon = textures[self.role]
-            self.icon = pg.transform.rotate(self.icon, 90) if enemy_ship else self.icon
+            self.icon = pg.transform.rotate(self.icon, 270) if enemy_ship else self.icon
             self._power = 0
 
     def update(self, mouse_pos: tuple[int, int], mouse_clicked: bool) -> None:

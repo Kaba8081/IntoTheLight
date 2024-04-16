@@ -6,9 +6,10 @@ _FILEPATH = path.abspath(path.join(_FILEPATH, ".."))
 _FILEPATH = path.join(_FILEPATH, "content")
 _FILEPATH = path.join(_FILEPATH, "textures")
 
-def load_texture(name: str, new_size: tuple[int,int]=None) -> pg.Surface:
+def load_texture(name: str, new_size: tuple[int,int]=None, extension: str=".png") -> pg.Surface:
     """Load a texture from the texture_path and resize it if needed."""
-    texture = pg.image.load(path.join(_FILEPATH, name))
+    name += extension
+    texture =  pg.image.load(path.join(_FILEPATH, name))
     if new_size is not None:
         texture = pg.transform.scale(texture, new_size)
     return texture
@@ -174,35 +175,35 @@ ship_layouts = {
 textures = {
     # ship parts
     "door":{
-        "closed": load_texture("door_closed.png"),
-        "open": load_texture("door_open.png")
+        "closed": load_texture("door_closed"),
+        "open": load_texture("door_open")
     },
-    "tile_default": load_texture("tile1.png"),
+    "tile_default": load_texture("tile1"),
 
     # system ship icons
-    "engines": load_texture("engine.png",(24,24)),
-    "weapons": load_texture("weapons.png",(24,24)),
-    "medbay": load_texture("medbay.png",(24,24)),
-    "o2": load_texture("oxygen.png",(24,24)),
-    "cameras": load_texture("camera.png",(24,24)),
-    "bridge": load_texture("bridge.png",(24,24)),
+    "engines": load_texture("engine",(24,24)),
+    "weapons": load_texture("weapons",(24,24)),
+    "medbay": load_texture("medbay",(24,24)),
+    "o2": load_texture("oxygen",(24,24)),
+    "cameras": load_texture("camera",(24,24)),
+    "bridge": load_texture("bridge",(24,24)),
     "shields": None,
 
     # upgrade slots
-    "upgrade_slot": load_texture("upgrade_slot.png"),
+    "upgrade_slot": load_texture("upgrade_slot"),
 
     # weapons
     "weaponry":
     {
         "laser_mk1":
         {
-            "off": load_texture("laser_mk1_off.png"),
+            "off": load_texture("laser_mk1_off"),
             "charge":[
-                load_texture("laser_mk1_charge_1.png"),
-                load_texture("laser_mk1_charge_2.png"),
-                load_texture("laser_mk1_charge_3.png"),
+                load_texture("laser_mk1_charge_1"),
+                load_texture("laser_mk1_charge_2"),
+                load_texture("laser_mk1_charge_3"),
             ],
-            "ready": load_texture("laser_mk1_ready.png"),
+            "ready": load_texture("laser_mk1_ready"),
         }
     },
 
@@ -211,27 +212,27 @@ textures = {
     {
         "thruster_mk1":
         {
-            "idle": load_texture("thruster_mk1_idle.png"),
-            "active": load_texture("thruster_mk1_active.png")
+            "idle": load_texture("thruster_mk1_idle"),
+            "active": load_texture("thruster_mk1_active")
         }
     },
 
     # ui elements
-    "engines_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
-    "weapons_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
-    "medbay_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
-    "o2_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
-    "cameras_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
-    "bridge_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
-    "shields_icon_off": pg.image.load(path.join(_FILEPATH, "engine_icon_off.png")),
+    "engines_icon_off":  load_texture("engine_icon_off"),
+    "weapons_icon_off":  load_texture("engine_icon_off"),
+    "medbay_icon_off":  load_texture("engine_icon_off"),
+    "o2_icon_off":  load_texture("engine_icon_off"),
+    "cameras_icon_off":  load_texture("engine_icon_off"),
+    "bridge_icon_off":  load_texture("engine_icon_off"),
+    "shields_icon_off":  load_texture("engine_icon_off"),
 
-    "engines_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
-    "weapons_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
-    "medbay_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
-    "o2_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
-    "cameras_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
-    "bridge_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
-    "shields_icon_on": pg.image.load(path.join(_FILEPATH, "engine_icon_on.png")),
+    "engines_icon_on":  load_texture("engine_icon_on"),
+    "weapons_icon_on":  load_texture("engine_icon_on"),
+    "medbay_icon_on":  load_texture("engine_icon_on"),
+    "o2_icon_on":  load_texture("engine_icon_on"),
+    "cameras_icon_on":  load_texture("engine_icon_on"),
+    "bridge_icon_on":  load_texture("engine_icon_on"),
+    "shields_icon_on":  load_texture("engine_icon_on"),
 }
 
 systems = [

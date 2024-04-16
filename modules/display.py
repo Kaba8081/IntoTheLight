@@ -67,7 +67,7 @@ class Display:
             self._screen.get_width() * (1-self.ratio)
             ))
         self.enemy.draw(self._enemy_screen)
-        self._enemy_screen = pg.transform.rotate(self._enemy_screen,270)
+        self._enemy_screen = pg.transform.rotate(self._enemy_screen,90)
 
     def draw(self) -> None:
         self.player.draw(self._player_screen)
