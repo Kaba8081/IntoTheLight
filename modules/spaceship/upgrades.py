@@ -1,6 +1,6 @@
 import pygame as pg
 
-from modules.resources import textures
+from modules.resources import textures, weapon_names
 
 class UpgradeSlot(pg.sprite.Sprite):
     def __init__(self, 
@@ -55,12 +55,13 @@ class Weapon(UpgradeSlot):
         self._anim_ready = self._txt_set["ready"]
 
         self.weapon_name = weapon_name
+        self.display_name = weapon_names[weapon_name]
         self.state = "off" # off | charge | ready
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
 
     def __str__(self) -> str:
         """Return the name of the weapon."""
-        return self.weapon_name
+        return self.display_name
 
     def __bool__(self) -> bool:
         """Return True if the weapon is ready to fire."""

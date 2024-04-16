@@ -139,7 +139,7 @@ class Room(pg.sprite.Group):
         return
     
     @property
-    def empty_upgrade_slots(self) -> Union[list, None]:
+    def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
         empty_slots = []
         for slot in self.upgrade_slots:
             if isinstance(self.upgrade_slots[slot], UpgradeSlot):
@@ -148,7 +148,7 @@ class Room(pg.sprite.Group):
         return empty_slots if len(empty_slots) > 0 else None
 
     @property
-    def weapons(self) -> Union[list, None]:
+    def weapons(self) -> Union[list[Weapon], None]:
         weapons = []
         for slot in self.upgrade_slots:
             if isinstance(self.upgrade_slots[slot], Weapon):
@@ -157,7 +157,7 @@ class Room(pg.sprite.Group):
         return weapons if len(weapons) > 0 else None
     
     @property
-    def thrusters(self) -> Union[list, None]:
+    def thrusters(self) -> Union[list[Thruster], None]:
         thrusters = []
         for slot in self.upgrade_slots:
             if isinstance(self.upgrade_slots[slot], Thruster):

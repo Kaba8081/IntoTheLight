@@ -2,7 +2,8 @@ import pygame as pg
 
 from modules.player import Player
 from modules.spaceship.room import Room
-from modules.resources import textures
+from modules.spaceship.upgrades import Weapon
+from modules.resources import textures, get_font
 
 class InterfaceController(pg.sprite.Group):
     def __init__(self, resolution: tuple[int,int], player: Player) -> None:
@@ -142,28 +143,72 @@ class WeaponsBar():
         self._color_disabled = (135, 135, 135)
         self._color_selected = (247, 198, 74)
         self._color_ready = (135, 247, 104)
+        
+        self._font = get_font("arial", 16)
 
         self.weapons = self._player.weapons
 
     def update(self) -> None:
-        pass
-
+        return
+    
+    def _draw_weapon(self, pos: tuple[int, int], weapon: Weapon) -> None:
+        label = self._font.render(str(weapon), True, (255,255,255))
+        center = ((pos[0]+self._bar_module_width//2) - label.get_width()//2, 
+                  pos[1]+self._bar_module_height//2)
+        self._bar_surface.blit(label, center)
+        
+        border_coords = [
+            # top left
+            (pos[0]+self._bar_gap, pos[1]+self._bar_gap),
+            # top right
+            (pos[0]+self._bar_module_width-self._bar_gap, pos[1]+self._bar_gap),
+            # bottom right
+            (pos[0]+self._bar_module_width-self._bar_gap, pos[1]+self._bar_module_height-self._bar_gap),
+            # bottom left
+            (pos[0]+self._bar_gap, pos[1]+self._bar_module_height-self._bar_gap)
+        ]
+        pg.draw.lines(
+            self._bar_surface,
+            (114, 115, 114),
+            True,
+            [
+                # top left -> top right
+                border_coords[0], border_coords[1],
+                # top right -> bottom right
+                border_coords[1], border_coords[2],
+                # bottom right -> bottom left
+                border_coords[2], border_coords[3],
+                # bottom left -> top left
+                border_coords[3], border_coords[0]
+            ],
+            self._bar_gap
+        )
+        return
+    
     def draw(self, screen: pg.surface.Surface) -> None:
         pg.draw.lines(
             self._bar_surface,
             (255,255,255),
             True,
             [
+                # top left -> top right
                 (0,48),
                 (self._bar_width, 48),
+                # top right -> bottom right
                 (self._bar_width, 48),
                 (self._bar_width, self._bar_height),
+                # bottom right -> bottom left
                 (self._bar_width, self._bar_height),
                 (0, self._bar_height),
+                # bottom left -> top left
                 (0, self._bar_height),
                 (0, 48)
             ],
             self._bar_gap
         )
+
+        for index, weapon in enumerate(self.weapons):
+            pos = ((self._bar_module_width+self._bar_gap) * index, 48)
+            self._draw_weapon(pos, weapon)
 
         screen.blit(self._bar_surface, self._bar_coords)

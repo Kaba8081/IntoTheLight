@@ -68,7 +68,7 @@ class Player(Spaceship):
                     door.open()
 
     @property
-    def empty_upgrade_slots(self) -> Union[list, None]:
+    def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
         empty_slots = []
         for room in self.rooms:
             room_slots = room.upgrade_slots
@@ -78,17 +78,17 @@ class Player(Spaceship):
         return empty_slots if len(empty_slots) > 0 else None
 
     @property
-    def weapons(self) -> list:
+    def weapons(self) -> list[Weapon]:
         weapons = []
         for room in self.rooms:
             room_weapons = room.weapons
             if room_weapons is not None:
-                weapons.append(room_weapons)
+                weapons = weapons + room_weapons
             
         return weapons
     
     @property
-    def thrusters(self) -> Union[list, None]:
+    def thrusters(self) -> Union[list[Thruster], None]:
         thrusters = []
         for room in self.rooms:
             room_thrusters = room.thrusters

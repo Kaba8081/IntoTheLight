@@ -3,8 +3,18 @@ from os import path
 
 _FILEPATH = path.dirname(path.realpath(__file__))
 _FILEPATH = path.abspath(path.join(_FILEPATH, ".."))
-_FILEPATH = path.join(_FILEPATH, "content")
-_FILEPATH = path.join(_FILEPATH, "textures")
+_CONTENT = path.join(_FILEPATH, "content")
+_FILEPATH = path.join(_CONTENT, "textures")
+
+pg.font.init()
+
+def get_font(font: str ="arial", size=16, bold=False) -> pg.font.Font:
+    """Return a pygame.font.Font object with the specified font, size and boldness."""
+    try: 
+        return pg.font.Font(path.join(_CONTENT, f"{font}.ttf"), size)
+    except:
+        print(f"Font {font} was not found in the local dir! Using default system font...")
+        return pg.font.SysFont("arial", size, bold=bold)
 
 def load_texture(name: str, new_size: tuple[int,int]=None, extension: str=".png") -> pg.Surface:
     """Load a texture from the texture_path and resize it if needed."""
@@ -244,3 +254,6 @@ systems = [
     "bridge", 
     "shields"
 ]
+weapon_names = {
+    "laser_mk1": "Laser MK1"
+}
