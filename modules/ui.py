@@ -212,66 +212,6 @@ class WeaponIcon():
 
         return
 
-class WeaponsBar():
-    def __init__(self, player: Player, coords: tuple[int, int]) -> None:
-        self._player = player
-
-        self._bar_module_size = 4
-        self._bar_gap = 2
-        self._bar_module_width = 126
-        self._bar_module_height = 64
-
-        self._bar_width = ((self._bar_module_width + self._bar_gap) * self._bar_module_size)
-        self._bar_height = self._bar_module_height + 48
-        self._bar_surface = pg.Surface((self._bar_width+self._bar_gap, self._bar_height+self._bar_gap), pg.SRCALPHA)
-        self._bar_coords = (coords[0], coords[1]-self._bar_height)
-        self._color_disabled = (135, 135, 135)
-        self._color_selected = (247, 198, 74)
-        self._color_ready = (135, 247, 104)
-        
-        self._font = get_font("arial", 16)
-
-        self.weapons = self._player.weapons
-        self.weapons_icons = []
-
-    def update(self) -> None:
-        return
-
-    def _draw_weapon(self, pos: tuple[int, int], weapon: Weapon) -> None:
-        label = self._font.render(str(weapon), True, (255,255,255))
-        center = ((pos[0]+self._bar_module_width//2) - label.get_width()//2, 
-                  pos[1]+self._bar_module_height//2)
-        self._bar_surface.blit(label, center)
-        
-        border_coords = [
-            # top left
-            (pos[0]+self._bar_gap, pos[1]+self._bar_gap),
-            # top right
-            (pos[0]+self._bar_module_width-self._bar_gap, pos[1]+self._bar_gap),
-            # bottom right
-            (pos[0]+self._bar_module_width-self._bar_gap, pos[1]+self._bar_module_height-self._bar_gap),
-            # bottom left
-            (pos[0]+self._bar_gap, pos[1]+self._bar_module_height-self._bar_gap)
-        ]
-        pg.draw.lines(
-            self._bar_surface,
-            (114, 115, 114),
-            True,
-            [
-                # top left -> top right
-                border_coords[0], border_coords[1],
-                # top right -> bottom right
-                border_coords[1], border_coords[2],
-                # bottom right -> bottom left
-                border_coords[2], border_coords[3],
-                # bottom left -> top left
-                border_coords[3], border_coords[0]
-            ],
-            self._bar_gap
-        )
-        return
-    
-    def draw(self, screen: pg.surface.Surface) -> None:
         pg.draw.lines(
             self._bar_surface,
             (255,255,255),
