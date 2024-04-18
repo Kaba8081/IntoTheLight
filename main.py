@@ -27,16 +27,20 @@ def main() -> None:
 
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()
-        mouse_clicked = pg.mouse.get_pressed()
+        mouse_event = False
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
             if event.type == pg.MOUSEBUTTONDOWN:
+                mouse_event = True
                 mouse_clicked = pg.mouse.get_pressed()
                 display.update_mouse(mouse_pos, mouse_clicked)
                 if event.button == 1:
                     player.update(dt, mouse_pos, mouse_clicked)
-        
+        # if the mouse was not clicked, check if it's hovering over objects
+        if not mouse_event:
+            display.check_mouse_hover(mouse_pos)
+
         player.update(dt, mouse_pos)
         display.update()
         display.draw()
