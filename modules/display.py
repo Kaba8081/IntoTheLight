@@ -57,8 +57,9 @@ class Display:
             ))
         self.enemy.find_bordering_rooms()
 
-    def update_mouse(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int,int,int]) -> None:
-        self._interface.update_mouse(mouse_pos, mouse_clicked)
+    def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int,int,int]) -> None:
+        self._interface.mouse_clicked(mouse_pos, mouse_clicked)
+
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:
         self._interface.check_mouse_hover(mouse_pos)
 

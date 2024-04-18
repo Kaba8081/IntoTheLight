@@ -29,7 +29,7 @@ class InterfaceController(pg.sprite.Group):
         # Weapons bar
 
         self._wbar_module_size = 4
-        self._wbar_gap = 2
+        self._wbar_gap = 4
         self._wbar_module_width = 126
         self._wbar_module_height = 64
     
@@ -51,12 +51,16 @@ class InterfaceController(pg.sprite.Group):
                 WeaponIcon(self._player, 
                            weapon,
                            (
-                               (self._wbar_module_width + self._wbar_gap) * index,
-                               48
+                               (self._wbar_module_width + self._wbar_gap) * index+2,
+                               48 + 2
+                           ),
+                           (
+                               (self._wbar_module_width + self._wbar_gap) * index + self._wbar_coords[0],
+                               48 + self._wbar_gap + self._wbar_coords[1]
                            ),
                            (
                                self._wbar_module_width,
-                               self._wbar_module_height
+                               self._wbar_module_height - 2
                            )
                            )
             )
@@ -97,6 +101,9 @@ class InterfaceController(pg.sprite.Group):
         """Draws the weapons interface on the screen"""
         
         self._wbar_surface.fill((0,0,0))
+        for w_icon in self._weapon_icons:
+            w_icon.draw(self._wbar_surface)
+
         pg.draw.lines(
             self._wbar_surface,
             (255,255,255),
@@ -115,21 +122,28 @@ class InterfaceController(pg.sprite.Group):
                 (0, self._wbar_height),
                 (0, 48)
             ],
-            self._wbar_gap
+            2
         )
-        for w_icon in self._weapon_icons:
-            w_icon.draw(self._wbar_surface)
-        
         self.surface.blit(self._wbar_surface, self._wbar_coords)
     
-    def update_mouse(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
+    def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
         # handle user input
-        for icon in self._installed_systems_icon_bar:
-            if icon.rect.collidepoint(mouse_pos):
-                icon.toggle(mouse_clicked)
+        for picon in self._installed_systems_icon_bar:
+            if picon.rect.collidepoint(mouse_pos):
+                picon.toggle(mouse_clicked)
+                break
+
+        for wicon in self._weapon_icons:
+            if wicon.hitbox.collidepoint(mouse_pos):
+                wicon.toggle(True, mouse_clicked)
+            else:
+                wicon.toggle(False)
 
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:
-        pass
+        # check if the mouse is hovering over any of the weapon icons
+        for wicon in self._weapon_icons:
+            wicon.hovering = True if wicon.hitbox.collidepoint(mouse_pos) else False
+            break
 
     def update(self) -> None:
         self._player_power_current = self._player.current_power
@@ -142,6 +156,9 @@ class InterfaceController(pg.sprite.Group):
 
         self._draw_power()
         self._installed_systems_icon_bar.draw(self.surface)
+
+        for wicon in self._weapon_icons:
+            wicon.update()
 
         self._draw_weapons()
 
@@ -193,48 +210,56 @@ class PowerIcon(pg.sprite.Sprite):
         return self.system_name
 
 class WeaponIcon():
-    def __init__(self, player: Player, weapon: Weapon, pos: tuple[int, int], size: tuple[int, int]) -> None:
+    def __init__(self, player: Player, weapon: Weapon, pos: tuple[int, int], real_pos: tuple[int, int], size: tuple[int, int]) -> None:
         self._player = player
+        self._weapon = weapon
         self._font = get_font("arial", 16)
         self._label = self._font.render(str(weapon), True, (255,255,255))
         
-        self._color_disabled = (135, 135, 135)
-        self._color_selected = (247, 198, 74)
-        self._color_ready = (135, 247, 104)
+        self._colors = {
+            "disabled": (135, 135, 135),
+            "charging": (50,50,50),
+            "ready": (135, 247, 104),
+            "hovering": (100, 100, 100),
+            "selected": (247, 198, 74)
+        }
 
         self.rect = pg.Rect(pos, size)
-    
+        self.hitbox = pg.Rect(real_pos, size)
+        self.hovering = False
+        self.selected = False
+        self.state = "disabled"
+
+    def update(self) -> None:
+        self.state = self._weapon.state
+        print(self.state)
+
     def draw(self, screen: pg.surface.Surface) -> None:
-        pg.draw.rect(screen, (114, 115, 114), self.rect, 2)            
+        color = self._colors[self.state]
+        if self.hovering:
+            color = self._colors["hovering"]
+        if self.selected and self.state == "ready":
+            color = self._colors["selected"]
+
+        pg.draw.rect(screen, color, self.rect, 2) # draw outline         
         
         label_center = (self.rect.centerx - self._label.get_width()//2, self.rect.centery)
         screen.blit(self._label, label_center)
 
         return
-
-        pg.draw.lines(
-            self._bar_surface,
-            (255,255,255),
-            True,
-            [
-                # top left -> top right
-                (0,48),
-                (self._bar_width, 48),
-                # top right -> bottom right
-                (self._bar_width, 48),
-                (self._bar_width, self._bar_height),
-                # bottom right -> bottom left
-                (self._bar_width, self._bar_height),
-                (0, self._bar_height),
-                # bottom left -> top left
-                (0, self._bar_height),
-                (0, 48)
-            ],
-            self._bar_gap
-        )
-
-        for index, weapon in enumerate(self.weapons):
-            pos = ((self._bar_module_width+self._bar_gap) * index, 48)
-            self._draw_weapon(pos, weapon)
-
-        screen.blit(self._bar_surface, self._bar_coords)
+    
+    def toggle(self, clicked: bool, mouse_clicked: tuple[int, int, int] = (0,0,0)) -> None:
+        if not clicked:
+            self.selected = False 
+        
+        if mouse_clicked[0]:
+            if self.state == "ready":
+                self._player.selected_weapon = self._weapon
+                self.selected = True
+            else:
+                self._weapon.start_charging()
+                self.state = "charging"
+        elif mouse_clicked[2]:
+            self._player.selected_weapon = None
+            self._weapon.disable()
+            self.state = "disabled"

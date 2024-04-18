@@ -66,6 +66,9 @@ class Player(Spaceship):
                 door.hovering = True
                 if mouse_clicked is not None and mouse_clicked[0]:
                     door.open()
+        
+        for weapon in self.weapons:
+            weapon.update()
 
     @property
     def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:

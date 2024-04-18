@@ -23,7 +23,7 @@ def main() -> None:
 
     player = Player()
     enemy = Enemy()
-    display = Display(screen, resolution, 0.6, player, enemy)
+    display = Display(screen, resolution, 0.65, player, enemy)
 
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()
@@ -34,7 +34,7 @@ def main() -> None:
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse_event = True
                 mouse_clicked = pg.mouse.get_pressed()
-                display.update_mouse(mouse_pos, mouse_clicked)
+                display.mouse_clicked(mouse_pos, mouse_clicked)
                 if event.button == 1:
                     player.update(dt, mouse_pos, mouse_clicked)
         # if the mouse was not clicked, check if it's hovering over objects

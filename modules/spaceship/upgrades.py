@@ -49,15 +49,32 @@ class Weapon(UpgradeSlot):
                  sprite_group: pg.sprite.Group,
                  ) -> None:
 
+        # textures
         self._txt_set = textures["weaponry"][weapon_name]
         self._anim_idle = self._txt_set["off"]
         self._anim_charge = [frame for frame in self._txt_set["charge"]]
         self._anim_ready = self._txt_set["ready"]
 
+        # logic
+        self.charge_time = 0
+        self.curr_charge = 0
         self.weapon_name = weapon_name
         self.display_name = weapon_names[weapon_name]
-        self.state = "off" # off | charge | ready
+        self.state = "disabled" # disabled | charging | ready
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
+
+    def start_charging(self) -> None:
+        self.state = "charging"
+    
+    def disable(self) -> None:
+        self.state = "disabled"
+        self.curr_charge = 0
+
+    def update(self) -> None: # TODO: implement charge time
+        if self.state == "charging":
+            self.curr_charge += 1
+            if self.curr_charge >= self.charge_time:
+                self.state = "ready"
 
     def __str__(self) -> str:
         """Return the name of the weapon."""
