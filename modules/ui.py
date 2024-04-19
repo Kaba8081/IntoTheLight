@@ -29,11 +29,11 @@ class InterfaceController(pg.sprite.Group):
         # Weapons bar
 
         self._wbar_module_size = 4
-        self._wbar_gap = 4
+        self._wbar_gap = 2
         self._wbar_module_width = 126
         self._wbar_module_height = 64
     
-        self._wbar_width = ((self._wbar_module_width + self._wbar_gap) * self._wbar_module_size)
+        self._wbar_width = ((self._wbar_module_width + self._wbar_gap) * self._wbar_module_size) - self._wbar_gap + 2
         self._wbar_height = self._wbar_module_height + 48
         self._wbar_surface = pg.Surface((self._wbar_width+self._wbar_gap, self._wbar_height+self._wbar_gap), pg.SRCALPHA)
 
@@ -56,7 +56,7 @@ class InterfaceController(pg.sprite.Group):
                            ),
                            (
                                (self._wbar_module_width + self._wbar_gap) * index + self._wbar_coords[0],
-                               48 + self._wbar_gap + self._wbar_coords[1]
+                               48 + self._wbar_coords[1]
                            ),
                            (
                                self._wbar_module_width,
@@ -143,7 +143,6 @@ class InterfaceController(pg.sprite.Group):
         # check if the mouse is hovering over any of the weapon icons
         for wicon in self._weapon_icons:
             wicon.hovering = True if wicon.hitbox.collidepoint(mouse_pos) else False
-            break
 
     def update(self) -> None:
         self._player_power_current = self._player.current_power
@@ -221,6 +220,7 @@ class WeaponIcon():
             "charging": (50,50,50),
             "ready": (135, 247, 104),
             "hovering": (100, 100, 100),
+            "ready_hovering": (94, 186, 69),
             "selected": (247, 198, 74)
         }
 
@@ -232,16 +232,17 @@ class WeaponIcon():
 
     def update(self) -> None:
         self.state = self._weapon.state
-        print(self.state)
 
     def draw(self, screen: pg.surface.Surface) -> None:
         color = self._colors[self.state]
         if self.hovering:
             color = self._colors["hovering"]
+        if self.hovering and self.state == "ready":
+            color = self._colors["ready_hovering"]
         if self.selected and self.state == "ready":
             color = self._colors["selected"]
 
-        pg.draw.rect(screen, color, self.rect, 2) # draw outline         
+        pg.draw.rect(screen, color, self.rect, 4) # draw outline         
         
         label_center = (self.rect.centerx - self._label.get_width()//2, self.rect.centery)
         screen.blit(self._label, label_center)

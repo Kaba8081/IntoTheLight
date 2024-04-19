@@ -16,15 +16,8 @@ class UpgradeSlot(pg.sprite.Sprite):
             # purpose is a string that describes only the upgrade slot
             self.purpose = purpose
 
-        if orientation == "top":
-            self.image = texture
-        elif orientation == "right":
-            self.image = pg.transform.rotate(texture, 270)
-        elif orientation == "bottom":
-            self.image = pg.transform.flip(texture, False, True)
-        elif orientation == "left":
-            self.image = pg.transform.rotate(texture, 90)
-        
+        self.orientation = orientation
+        self.change_texture(texture)
         self.pos = pos
         self.rect = self.image.get_rect()
 
@@ -41,6 +34,16 @@ class UpgradeSlot(pg.sprite.Sprite):
             self.rect.right = pos[0]
             self.rect.centery = pos[1]
 
+    def change_texture(self, texture: pg.Surface) -> None:
+        if self.orientation == "top":
+            self.image = texture
+        elif self.orientation == "right":
+            self.image = pg.transform.rotate(texture, 270)
+        elif self.orientation == "bottom":
+            self.image = pg.transform.flip(texture, False, True)
+        elif self.orientation == "left":
+            self.image = pg.transform.rotate(texture, 90)
+
 class Weapon(UpgradeSlot):
     def __init__(self, 
                  pos: tuple[int, int], 
@@ -51,8 +54,8 @@ class Weapon(UpgradeSlot):
 
         # textures
         self._txt_set = textures["weaponry"][weapon_name]
-        self._anim_idle = self._txt_set["off"]
-        self._anim_charge = [frame for frame in self._txt_set["charge"]]
+        self._anim_idle = self._txt_set["disabled"]
+        self._anim_charge = [frame for frame in self._txt_set["charging"]]
         self._anim_ready = self._txt_set["ready"]
 
         # logic
@@ -67,14 +70,19 @@ class Weapon(UpgradeSlot):
         self.state = "charging"
     
     def disable(self) -> None:
+        self.change_texture(self._anim_idle)
+        
         self.state = "disabled"
         self.curr_charge = 0
 
     def update(self) -> None: # TODO: implement charge time
         if self.state == "charging":
+            self.change_texture(self._anim_charge[self.curr_charge])
             self.curr_charge += 1
+
             if self.curr_charge >= self.charge_time:
                 self.state = "ready"
+                self.change_texture(self._anim_ready)
 
     def __str__(self) -> str:
         """Return the name of the weapon."""

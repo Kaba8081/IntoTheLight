@@ -145,7 +145,12 @@ ship_layouts = {
                 "pos": (8, 1),
                 "tiles": [[1,1],[1,1]],
                 "role": "medbay",
-                "level": 1
+                "level": 1,
+                "upgrade_slots":{
+                    "weapon": {
+                        "top": "laser_mk1",
+                    }
+                }
             },
             {
                 "pos": (8, 3),
@@ -161,7 +166,12 @@ ship_layouts = {
                 "pos": (10, 3),
                 "tiles": [[1],[1]],
                 "role": "cameras",
-                "level": 1
+                "level": 1,
+                "upgrade_slots":{
+                    "weapon": {
+                        "bottom" : "laser_mk1"
+                    }
+                }
             },
             {
                 "pos": (12, 2),
@@ -169,7 +179,7 @@ ship_layouts = {
                 "upgrade_slots":{
                     "weapon": {
                         "top": "laser_mk1",
-                        "bottom" : None
+                        "bottom" : "laser_mk1"
                     }
                 }
             },
@@ -207,8 +217,8 @@ textures = {
     {
         "laser_mk1":
         {
-            "off": load_texture("laser_mk1_off"),
-            "charge":[
+            "disabled": load_texture("laser_mk1_off"),
+            "charging":[
                 load_texture("laser_mk1_charge_1"),
                 load_texture("laser_mk1_charge_2"),
                 load_texture("laser_mk1_charge_3"),
