@@ -257,10 +257,19 @@ class WeaponIcon():
             if self.state == "ready":
                 self._player.selected_weapon = self._weapon
                 self.selected = True
-            else:
-                self._weapon.start_charging()
-                self.state = "charging"
-        elif mouse_clicked[2]:
+            else: # try to activate the weapon
+                curr_power = self._player.current_power
+                max_power = self._player.max_power
+                power_left = max_power - curr_power
+
+                if power_left >= self._weapon.req_power and self._player.check_if_system_accepts_power("weapons", self._weapon.req_power):
+                    self.state = "charging"
+                    self._player.toggle_system_power(("weapons", True), self._weapon.req_power)
+                    self._weapon.activate()
+                else:
+                    self.state = "disabled"
+        elif mouse_clicked[2] and self.state in ["charging", "ready", "selected"]:
             self._player.selected_weapon = None
+            self._player.toggle_system_power(("weapons", False), self._weapon.req_power)
             self._weapon.disable()
             self.state = "disabled"

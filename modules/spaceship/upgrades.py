@@ -1,6 +1,6 @@
 import pygame as pg
 
-from modules.resources import textures, weapon_names
+from modules.resources import textures, weapons
 
 class UpgradeSlot(pg.sprite.Sprite):
     def __init__(self, 
@@ -48,27 +48,29 @@ class Weapon(UpgradeSlot):
     def __init__(self, 
                  pos: tuple[int, int], 
                  orientation: str,
-                 weapon_name: str,
+                 weapon_id: str,
                  sprite_group: pg.sprite.Group,
                  ) -> None:
 
         # textures
-        self._txt_set = textures["weaponry"][weapon_name]
+        self._txt_set = textures["weaponry"][weapon_id]
         self._anim_idle = self._txt_set["disabled"]
         self._anim_charge = [frame for frame in self._txt_set["charging"]]
         self._anim_ready = self._txt_set["ready"]
 
         # logic
+
+        self.req_power = weapons[weapon_id]["req_power"]
         self.charge_time = 0
         self.curr_charge = 0
-        self.weapon_name = weapon_name
-        self.display_name = weapon_names[weapon_name]
+        self.weapon_name = weapon_id
+        self.display_name = weapons[weapon_id]["name"]
         self.state = "disabled" # disabled | charging | ready
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
-
-    def start_charging(self) -> None:
-        self.state = "charging"
     
+    def activate(self) -> None:
+        self.state = "charging"
+
     def disable(self) -> None:
         self.change_texture(self._anim_idle)
         

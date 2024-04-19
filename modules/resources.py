@@ -239,7 +239,7 @@ textures = {
 
     # ui elements
     "engines_icon_off":  load_texture("engine_icon_off"),
-    "weapons_icon_off":  load_texture("engine_icon_off"),
+    "weapons_icon_off":  load_texture("weapons_icon_off"),
     "medbay_icon_off":  load_texture("engine_icon_off"),
     "o2_icon_off":  load_texture("engine_icon_off"),
     "cameras_icon_off":  load_texture("engine_icon_off"),
@@ -247,7 +247,7 @@ textures = {
     "shields_icon_off":  load_texture("engine_icon_off"),
 
     "engines_icon_on":  load_texture("engine_icon_on"),
-    "weapons_icon_on":  load_texture("engine_icon_on"),
+    "weapons_icon_on":  load_texture("weapons_icon_on"),
     "medbay_icon_on":  load_texture("engine_icon_on"),
     "o2_icon_on":  load_texture("engine_icon_on"),
     "cameras_icon_on":  load_texture("engine_icon_on"),
@@ -264,6 +264,9 @@ systems = [
     "bridge", 
     "shields"
 ]
-weapon_names = {
-    "laser_mk1": "Laser MK1"
+weapons = {
+    "laser_mk1": {
+        "name": "Laser MK1",
+        "req_power": 1
+    }
 }

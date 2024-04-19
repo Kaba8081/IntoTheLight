@@ -115,21 +115,49 @@ class Player(Spaceship):
             power_level += self.installed_systems[system].power
         return power_level
 
-    def toggle_system_power(self, value: tuple[str, bool]) -> None:
+    def toggle_system_power(self, action: tuple[str, bool], value: int = 1) -> None:
         """ 
         Toggles the power level of a system. 
 
-        :param value: tuple[str, bool] - the name of the system and whether add/remove power (True/False)
+        :param action: tuple[str, bool] - the name of the system and whether add/remove power (True/False)
+        :param value: int - the amount of power to add/remove (default = 1)
         """
 
-        system_name, action = value
+        system_name, action = action
         for installed_system_name in self.installed_systems.keys():
             if installed_system_name == system_name:
                 room = self.installed_systems[installed_system_name]
 
                 if action:
-                    room.power += 1
+                    room.power += value
                 else:
-                    room.power -= 1
+                    room.power -= value
 
                 return
+    
+    def get_system_max_power(self, system: str) -> int:
+        """Get the maximum power level of a system.
+        :param system: str - the name of the system
+        """
+
+        for installed_system_name in self.installed_systems.keys():
+            if installed_system_name == system:
+                room = self.installed_systems[installed_system_name]
+                return room.max_power
+        
+        print("Could not get the rooms max power: System not found!")
+        return 0
+    
+    def check_if_system_accepts_power(self, system: str, value: int) -> bool:
+        """Check's if the given system can accept the given power level.
+        :param system: str - the name of the system
+        :param value: int - the power level to check
+        """
+
+        for installed_system_name in self.installed_systems.keys():
+            if installed_system_name == system:
+                room = self.installed_systems[installed_system_name]
+                return room.power + value <= room.max_power
+        
+        print("Could not check if system accepts power: System not found!")
+        return False
