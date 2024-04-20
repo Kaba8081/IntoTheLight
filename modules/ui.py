@@ -27,7 +27,6 @@ class InterfaceController(pg.sprite.Group):
         self._player_power_current = self._player_power_max
 
         # Weapons bar
-
         self._wbar_module_size = 4
         self._wbar_gap = 2
         self._wbar_module_width = 126
@@ -66,7 +65,7 @@ class InterfaceController(pg.sprite.Group):
             )
 
     def _draw_power(self) -> None:
-        """Draws every element of the power bar"""
+        """Draws power bar interface on screen."""
         
         color_on = (106, 190, 48)
         color_off = (132, 126, 135)
@@ -127,7 +126,12 @@ class InterfaceController(pg.sprite.Group):
         self.surface.blit(self._wbar_surface, self._wbar_coords)
     
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
-        # handle user input
+        """
+        Check if the mouse is clicking on any of the interface elements.
+        :param mouse_pos: tuple[int, int] - the mouse's position
+        :param mouse_clicked: tuple[int, int, int] - the state of the mouse buttons
+        """
+
         for picon in self._installed_systems_icon_bar:
             if picon.rect.collidepoint(mouse_pos):
                 picon.toggle(mouse_clicked)
@@ -140,11 +144,19 @@ class InterfaceController(pg.sprite.Group):
                 wicon.toggle(False)
 
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:
-        # check if the mouse is hovering over any of the weapon icons
+        """
+        Check if the mouse is hovering over any of the interface elements.
+        :param mouse_pos: tuple[int, int] - the mouse's position
+        """
+
         for wicon in self._weapon_icons:
             wicon.hovering = True if wicon.hitbox.collidepoint(mouse_pos) else False
 
     def update(self) -> None:
+        """
+        Update the interface elements.
+        """
+
         self._player_power_current = self._player.current_power
         self.surface = pg.Surface(self.resolution, pg.SRCALPHA)
 
@@ -162,6 +174,11 @@ class InterfaceController(pg.sprite.Group):
         self._draw_weapons()
 
     def draw(self, screen: pg.surface.Surface) -> None:
+        """
+        Draw the interface to the provided surface.
+        :param screen: pg.surface.Surface - the surface to draw the interface on
+        """
+        
         screen.blit(self.surface, (0,0))
 
     @property
@@ -234,6 +251,9 @@ class WeaponIcon():
         self.state = "disabled"
 
     def update(self) -> None:
+        """
+        Update the icon state if there were any changes.
+        """
         self.state = self._weapon.state
 
         self.selected = True if self._player.selected_weapon == self._weapon else False
@@ -255,6 +275,11 @@ class WeaponIcon():
         return
     
     def toggle(self, clicked: bool, mouse_clicked: tuple[int, int, int] = (0,0,0)) -> None:
+        """
+        Update the weapon's state based on user input.
+        :param clicked: bool - whether the object was clicked (mouse over it)
+        :param mouse_clicked: tuple[int, int, int] - the state of the mouse buttons
+        """
         if not clicked:
             self.selected = False 
         

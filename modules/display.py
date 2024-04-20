@@ -44,7 +44,7 @@ class Display:
             new_player_center[0] - player_center[0],
             new_player_center[1] - player_center[1]
             ))
-        self.player.find_bordering_rooms()
+        self.player.place_doors()
 
         enemy_center = self.enemy.get_center()
         new_enemy_center = (
@@ -55,15 +55,30 @@ class Display:
             new_enemy_center[0] - enemy_center[0],
             new_enemy_center[1] - enemy_center[1],
             ))
-        self.enemy.find_bordering_rooms()
+        self.enemy.place_doors()
 
-    def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int,int,int]) -> None:
+    def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
+        """
+        Update the display based on the mouse position and click event.
+        :param mouse_pos: tuple[int, int] - the current mouse position
+        :param mouse_clicked: tuple[bool, bool, bool] - the current state of the mouse buttons
+        """
+
         self._interface.mouse_clicked(mouse_pos, mouse_clicked)
 
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:
+        """
+        Check if the mouse is hovering over any objects.
+        :param mouse_pos: tuple[int, int] - the current mouse position
+        """
+
         self._interface.check_mouse_hover(mouse_pos)
 
     def update(self) -> None:
+        """
+        Update the display.
+        """
+
         self._interface.update()
         self._enemy_screen = pg.Surface((
             self._screen.get_height(),
@@ -73,6 +88,10 @@ class Display:
         self._enemy_screen = pg.transform.rotate(self._enemy_screen,90)
 
     def draw(self) -> None:
+        """
+        Draw's the display contents on screen.
+        """
+
         self.player.draw(self._player_screen)
 
         self._screen.blit(self._player_screen, (0,0))

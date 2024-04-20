@@ -3,6 +3,7 @@ from os import path
 
 from modules.spaceship.room import Room
 from modules.spaceship.door import Door
+from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
 from modules.resources import ship_layouts
 
@@ -20,13 +21,21 @@ class Spaceship:
                 )
 
     def draw(self, screen: pg.Surface) -> None:
+        """
+        Draw's the spaceship and it's components on screen.
+        :param screen: The screen to draw the spaceship on.
+        """
+
         for group in self.rooms:
             group.draw(screen)
 
         self.doors.draw(screen)
 
     def get_center(self) -> tuple[int, int]:
-        """Return the center of the spaceship in pixels."""
+        """
+        Return the center of the spaceship in pixels.
+        :return tuple[int, int] - The center of the spaceship.
+        """
 
         lowest_x = None
         lowest_y = None
@@ -51,7 +60,10 @@ class Spaceship:
         return ((highest_x + lowest_x)/2, (highest_y + lowest_y)/2)
 
     def move_by_distance(self, distance: tuple[int, int]) -> None:
-        """Move the spaceship by a distance in pixels."""
+        """
+        Move the spaceship by a distance in pixels.
+        :param distance: The distance to move the spaceship by.
+        """
 
         for room in self.rooms:
             room.rect.x += distance[0]
@@ -61,8 +73,13 @@ class Spaceship:
                 tile.rect.x += distance[0]
                 tile.rect.y += distance[1]
 
-    def connect_rooms(self, room1, room2) -> tuple:
-        """Connect adjecent rooms with doors."""
+    def connect_rooms(self, room1: Room, room2: Room) -> tuple[Tile, Tile]:
+        """
+        Connect adjecent rooms with doors.
+        :param room1: modules.Room - The first room to connect.
+        :param room2: modules.Room - The second room to connect.
+        :return tuple[modules.Tile, modules.Tile] - The two tiles that are connected.
+        """
         
         # TODO: can be optimized
         # find two tiles that are closest to each other
@@ -83,8 +100,10 @@ class Spaceship:
 
         return closest_tile1, closest_tile2
 
-    def find_bordering_rooms(self) -> None:
-        """Find rooms that are next to each other."""
+    def place_doors(self) -> None:
+        """
+        Place doors on the connected rooms inside the spaceship.
+        """
 
         for room in self.rooms:
             for adj_room in self.rooms:

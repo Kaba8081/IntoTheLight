@@ -48,7 +48,13 @@ class Room(pg.sprite.Group):
             self.icon = pg.transform.rotate(self.icon, 270) if enemy_ship else self.icon
             self._power = 0
 
-    def update(self, mouse_pos: tuple[int, int], mouse_clicked: bool) -> None:
+    def update(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
+        """
+        Update the room's state based on the mouse position and click event.
+        :param mouse_pos: tuple[int, int] - the current mouse position
+        :param mouse_clicked: tuple[bool, bool, bool] - the current state of the mouse buttons
+        """
+
         if self.rect.collidepoint(mouse_pos):
             if mouse_clicked[0]:
                 self.selected = True
@@ -61,8 +67,15 @@ class Room(pg.sprite.Group):
         self.hovering = False
         if mouse_clicked[0] and self.selected:
             self.selected = False
+    
+        return
 
-    def draw(self, screen) -> None:
+    def draw(self, screen: pg.surface.Surface) -> None:
+        """
+        Draw the room and it's components on the screen.
+        :param screen: pg.surface.Surface - the screen to draw on
+        """
+
         sprites = self.sprites()
 
         # draw all sprites in the room
@@ -109,7 +122,12 @@ class Room(pg.sprite.Group):
             screen.blit(s, self.rect)
     
     def place_upgrade(self, upgrade_type: str, orientation: str, upgrade_name: str) -> None:
-        """Place an upgrade slot or a specified weapon in the given slot."""
+        """
+        Place an upgrade slot or a specified weapon in the given slot.
+        :param upgrade_type: str - the type of upgrade slot
+        :param orientation: str - the orientation of the upgrade slot
+        :param upgrade_name: str - the name of the upgrade
+        """
         
         # find the position of the upgrade slot
         upgrade_pos = None

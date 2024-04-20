@@ -35,6 +35,11 @@ class UpgradeSlot(pg.sprite.Sprite):
             self.rect.centery = pos[1]
 
     def change_texture(self, texture: pg.Surface) -> None:
+        """
+        Rotate the texture based on the orientation of the upgrade slot.
+        :param texture: The texture to be rotated.
+        """
+
         if self.orientation == "top":
             self.image = texture
         elif self.orientation == "right":
@@ -62,6 +67,7 @@ class Weapon(UpgradeSlot):
 
         self.req_power = weapons[weapon_id]["req_power"]
         self.charge_time = 0
+        self.charge_diff = 1
         self.curr_charge = 0
         self.weapon_name = weapon_id
         self.display_name = weapons[weapon_id]["name"]
@@ -69,22 +75,35 @@ class Weapon(UpgradeSlot):
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
     
     def activate(self) -> None:
+        """
+        Activate the weapon. (set it's state to charging)
+        """
         self.state = "charging"
-
-    def disable(self) -> None:
-        self.change_texture(self._anim_idle)
-        
-        self.state = "disabled"
         self.curr_charge = 0
 
+    def disable(self) -> None:
+        """
+        Disable the weapon.
+        """
+        self.change_texture(self._anim_idle)
+        self.state = "disabled"
+
     def update(self) -> None: # TODO: implement charge time
+        """
+        Update the weapon's state.
+        """
         if self.state == "charging":
             self.change_texture(self._anim_charge[self.curr_charge])
-            self.curr_charge += 1
+            self.curr_charge += self.charge_diff
 
             if self.curr_charge >= self.charge_time:
                 self.state = "ready"
                 self.change_texture(self._anim_ready)
+        elif self.state == "ready":
+            self.change_texture(self._anim_ready)
+        elif self.state == "disabled":
+            self.curr_charge -= self.charge_diff # slowly decrease the charge
+            self.change_texture(self._anim_idle)
 
     def __str__(self) -> str:
         """Return the name of the weapon."""

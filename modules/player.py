@@ -62,12 +62,19 @@ class Player(Spaceship):
                     self._room_bridge = self.installed_systems[system_name]
                     self._room_bridge.power = 1
     
-    def update(self, dt: float, mouse_pos: tuple[int, int], mouse_clicked: list = None) -> None:
+    def update(self, dt: float, mouse_pos: tuple[int, int], mouse_btns: tuple[bool,bool,bool]  = None) -> None:
+        """
+        Update the player's components.
+        :param dt: float - the time since the last frame
+        :param mouse_pos: tuple[int, int] - the current mouse position
+        :param mouse_clicked: tuple[bool, bool, bool] - the current state of the mouse buttons
+        """
+
         for door in self.doors:
             if door.rect.collidepoint(mouse_pos):
                 door.hovering = True
-                if mouse_clicked is not None and mouse_clicked[0]:
-                    door.open()
+                if mouse_btns is not None and mouse_btns[0]:
+                    door.toggle()
         
         for weapon in self.weapons:
             weapon.update()
@@ -105,6 +112,7 @@ class Player(Spaceship):
         Try to activate a weapon if there is enough power left. If successful, return True.
         :param weapon: Weapon - the weapon to activate
         """
+
         curr_power = self.current_power
         max_power = self.max_power 
         power_left = max_power - curr_power
@@ -137,7 +145,8 @@ class Player(Spaceship):
                 return
     
     def get_system_max_power(self, system: str) -> int:
-        """Get the maximum power level of a system.
+        """
+        Get the maximum power level of a system.
         :param system: str - the name of the system
         """
 
@@ -150,7 +159,8 @@ class Player(Spaceship):
         return 0
     
     def check_if_system_accepts_power(self, system: str, value: int) -> bool:
-        """Check's if the given system can accept the given power level.
+        """
+        Check's if the given system can accept the given power level.
         :param system: str - the name of the system
         :param value: int - the power level to check
         """

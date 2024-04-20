@@ -1,5 +1,6 @@
 import pygame as pg
 from os import path
+import json
 
 _FILEPATH = path.dirname(path.realpath(__file__))
 _FILEPATH = path.abspath(path.join(_FILEPATH, ".."))
@@ -10,14 +11,20 @@ pg.font.init()
 
 def get_font(font: str ="arial", size=16, bold=False) -> pg.font.Font:
     """Return a pygame.font.Font object with the specified font, size and boldness."""
+
     try: 
         return pg.font.Font(path.join(_CONTENT, f"{font}.ttf"), size)
     except:
         print(f"Font {font} was not found in the local dir! Using default system font...")
         return pg.font.SysFont("arial", size, bold=bold)
 
+def load_config() -> dict:
+    with open("config.json", "r", encoding="utf-8-sig") as file:
+        return json.load(file)
+
 def load_texture(name: str, new_size: tuple[int,int]=None, extension: str=".png") -> pg.Surface:
     """Load a texture from the texture_path and resize it if needed."""
+
     name += extension
     texture =  pg.image.load(path.join(_FILEPATH, name))
     if new_size is not None:

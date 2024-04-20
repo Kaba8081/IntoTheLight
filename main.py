@@ -1,16 +1,9 @@
-
 import pygame as pg
-import json
-import os
 
 from modules.display import Display
 from modules.player import Player
 from modules.enemy import Enemy
-from modules.resources import keybinds
-
-def load_config() -> dict:
-    with open("config.json", "r", encoding="utf-8-sig") as file:
-        return json.load(file)
+from modules.resources import keybinds, load_config
 
 def main() -> None:
     pg.init()
@@ -29,15 +22,18 @@ def main() -> None:
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()
         mouse_event = False
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
+            
             if event.type == pg.MOUSEBUTTONDOWN:
                 mouse_event = True
                 mouse_clicked = pg.mouse.get_pressed()
                 display.mouse_clicked(mouse_pos, mouse_clicked)
                 if event.button == 1:
                     player.update(dt, mouse_pos, mouse_clicked)
+
             if event.type == pg.KEYDOWN and event.key in keybinds.values():
                 player.key_pressed(event.key)
 
@@ -51,7 +47,7 @@ def main() -> None:
 
         pg.display.flip()
         screen.fill((0,0,0))
-        dt = clock.tick(69) / 1000 # cap the game's framerate at 60 fps
+        dt = clock.tick(60) / 1000 # cap the game's framerate at 60 fps
  
 if __name__ == "__main__":
     main()

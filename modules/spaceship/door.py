@@ -21,7 +21,11 @@ class Door(pg.sprite.Sprite):
 
         self.opened = False
 
-    def open(self) -> None:
+    def toggle(self) -> None:
+        """
+        Toggle the door state between open and closed.
+        """
+
         self.opened = not self.opened
         
         if self.opened:

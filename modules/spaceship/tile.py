@@ -15,6 +15,3 @@ class Tile(pg.sprite.Sprite):
         self.pos = pos
         self.rect.x = parent_pos[0] * 32 + pos[0] * 32
         self.rect.y = parent_pos[1] * 32 + pos[1] * 32
-
-    def update(self) -> bool:
-        pass
