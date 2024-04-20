@@ -1,7 +1,9 @@
 import pygame as pg
 from typing import Union
 
-from modules.spaceship.spaceship import *
+from modules.spaceship.spaceship import Spaceship
+from modules.spaceship.upgrades import UpgradeSlot, Weapon, Thruster
+from modules.spaceship.room import Room
 from modules.resources import ship_layouts, systems, keybinds
 
 class Player(Spaceship):
@@ -30,11 +32,14 @@ class Player(Spaceship):
         self.rooms = []
         self.doors = pg.sprite.Group()
 
+        # weapon logic
         self.selected_weapon = None
+        self.aimed_rooms = {} # weapon_index: room
 
         for room in ship_layouts[ship_type]["rooms"]:
             created_room = Room(
-                room["pos"], 
+                (room["pos"][0]*32, room["pos"][1]*32),
+                (room["pos"][0]*32, room["pos"][1]*32),
                 room["tiles"],
                 role=room["role"] if "role" in room else None,
                 level=room["level"] if "level" in room else 0,
@@ -172,7 +177,7 @@ class Player(Spaceship):
         
         print("Could not check if system accepts power: System not found!")
         return False
-    
+
     @property
     def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
         empty_slots = []

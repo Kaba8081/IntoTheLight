@@ -8,17 +8,25 @@ from modules.spaceship.upgrades import *
 from modules.resources import ship_layouts
 
 class Spaceship:
-    def __init__(self, ship_type: str, enemy: bool = False) -> None:
+    def __init__(self, ship_type: str, enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
         self.rooms = []
         self.doors = pg.sprite.Group()
         for room in ship_layouts[ship_type]["rooms"]:
             self.rooms.append(Room(
-                room["pos"], 
+                (room["pos"][0]*32, room["pos"][1]*32),
+                (room["pos"][0]*32 + offset[1], room["pos"][1]*32 + offset[0]),
                 room["tiles"],
                 role=room["role"] if "role" in room else None,
                 upgrade_slots=room["upgrade_slots"] if "upgrade_slots" in room else {},
-                enemy_ship=enemy)
-                )
+                enemy_ship=enemy
+            ))
+        
+        if enemy: # flip all the rooms hitboxes horizontally
+            self.centery = self.get_center()[0]
+
+            for room in self.rooms:
+                hitbox_y = room.hitbox.centery
+                room.hitbox.centery = self.centery - hitbox_y + self.centery
 
     def draw(self, screen: pg.Surface) -> None:
         """
@@ -66,12 +74,7 @@ class Spaceship:
         """
 
         for room in self.rooms:
-            room.rect.x += distance[0]
-            room.rect.y += distance[1]
-
-            for tile in room.sprites():
-                tile.rect.x += distance[0]
-                tile.rect.y += distance[1]
+            room.move_by_distance(distance)
 
     def connect_rooms(self, room1: Room, room2: Room) -> tuple[Tile, Tile]:
         """
@@ -156,3 +159,12 @@ class Spaceship:
                                 (connected_tiles[0].rect.centery + connected_tiles[1].rect.centery)/2
                                 )
                     Door(door_coords, self.doors)
+    
+    def dev_draw_room_hitboxes(self, screen: pg.surface.Surface) -> None:
+        """
+        Draw the hitbox of the rooms for debugging.
+        :param screen: pg.surface.Surface - the screen to draw on
+        """
+
+        for room in self.rooms:
+            room.dev_draw_hitbox(screen)

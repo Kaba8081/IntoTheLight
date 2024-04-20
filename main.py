@@ -9,6 +9,7 @@ def main() -> None:
     pg.init()
 
     config = load_config()
+    RATIO = 0.65
     resolution = [int(value) for value in config["resolution"].split("x")]
     screen = pg.display.set_mode(resolution)
     pg.display.set_caption("IntoTheLight")
@@ -16,8 +17,8 @@ def main() -> None:
     dt = 0
 
     player = Player()
-    enemy = Enemy()
-    display = Display(screen, resolution, 0.65, player, enemy)
+    enemy = Enemy(offset=(resolution[0] * RATIO,0))
+    display = Display(screen, resolution, RATIO, player, enemy)
 
     while True: # game loop
         mouse_pos = pg.mouse.get_pos()

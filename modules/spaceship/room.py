@@ -8,7 +8,8 @@ from modules.resources import textures
 
 class Room(pg.sprite.Group):
     def __init__(self, 
-                 pos: tuple[int, int], 
+                 pos: tuple[int, int],
+                 realpos: tuple[int, int],
                  room_layout: list,
                  upgrade_slots: dict[str, str] = {},
                  role: str = None,
@@ -18,17 +19,26 @@ class Room(pg.sprite.Group):
         
         pg.sprite.Group.__init__(self)
         self.rect = pg.Rect(
-            (pos[0]*32, pos[1]*32), 
+            (pos[0], pos[1]), 
             (len(room_layout)*32, len(room_layout[0])*32))
-        
+        if enemy_ship:
+            self.hitbox = pg.Rect((realpos[1],realpos[0]), (self.rect.height, self.rect.width))
+        else:
+            self.hitbox = pg.Rect(realpos, (self.rect.width, self.rect.height))
+    
         self.pos = pos
         self.room_layout = room_layout
         self.adjecent_rooms = {} # room class : connected tiles
         self.upgrade_slots = {}
         self._upgrade_index = 0
+        self._enemy_ship = enemy_ship
 
+        # player interaction
         self.selected = False
         self.hovering = False
+
+        # enemy ship
+        self.aimed_at = False
 
         for x, collumn in enumerate(self.room_layout):
             for y, tile in enumerate(collumn):
@@ -81,28 +91,8 @@ class Room(pg.sprite.Group):
         # draw all sprites in the room
         for spr in sprites:
             self.spritedict[spr] = screen.blit(spr.image, spr.rect)
-        
-        # draw room outline
-        pg.draw.lines(
-            screen, 
-            (89,86,82), 
-            True, 
-            [
-                # top left -> top right 
-                (self.rect.x, self.rect.y),
-                (self.rect.x+self.rect.width, self.rect.y), 
-                # top right -> bottom right
-                (self.rect.x+self.rect.width, self.rect.y), 
-                (self.rect.x+self.rect.width, self.rect.y+self.rect.height),
-                # bottom right -> bottom left
-                (self.rect.x+self.rect.width, self.rect.y+self.rect.height),
-                (self.rect.x, self.rect.y+self.rect.height),
-                # bottom left -> top left
-                (self.rect.x, self.rect.y+self.rect.height),
-                (self.rect.x, self.rect.y)
-            ],
-            4
-        )
+
+        pg.draw.rect(screen, (89,86,82), self.rect, 2)
 
         # draw icon if the room has a role
         if self.icon is not None:
@@ -120,7 +110,25 @@ class Room(pg.sprite.Group):
             s = pg.Surface((self.rect.width, self.rect.height), pg.SRCALPHA) 
             s.fill((0,0,0,64)) 
             screen.blit(s, self.rect)
-    
+        
+        # draw a red border if the room is being targeted
+        if self.aimed_at:
+            pg.draw.rect(screen, (255,0,0,255), self.rect.inflate(-4, -4), 1)
+            pg.draw.rect(screen, (255,0,0,150), self.rect.inflate(-8, -8), 1)
+            pg.draw.rect(screen, (255,0,0,75), self.rect.inflate(-10, -10), 1)
+
+    def move_by_distance(self, distance: tuple[int, int]) -> None:
+        self.rect.x += distance[0]
+        self.rect.y += distance[1]
+
+        for tile in self.sprites():
+            tile.rect.x += distance[0]
+            tile.rect.y += distance[1]
+        
+        distance = distance[::-1] if self._enemy_ship else distance # flip axises if enemy ship
+        self.hitbox.x += distance[0]
+        self.hitbox.y += distance[1]
+
     def place_upgrade(self, upgrade_type: str, orientation: str, upgrade_name: str) -> None:
         """
         Place an upgrade slot or a specified weapon in the given slot.
@@ -155,7 +163,14 @@ class Room(pg.sprite.Group):
         self._upgrade_index += 1
 
         return
-    
+
+    def dev_draw_hitbox(self, screen: pg.surface.Surface) -> None:
+        """
+        Draw the hitbox of the room for debugging.
+        :param screen: pg.surface.Surface - the screen to draw on
+        """
+        pg.draw.rect(screen, (0,255,0, 50), self.hitbox)
+
     @property
     def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
         empty_slots = []

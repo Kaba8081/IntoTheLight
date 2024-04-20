@@ -66,6 +66,14 @@ class Display:
 
         self._interface.mouse_clicked(mouse_pos, mouse_clicked)
 
+        if hasattr(self, "enemy") and self.player.selected_weapon is not None:
+            index = self.player.weapons.index(self.player.selected_weapon)
+
+            room = self.enemy.select_room(mouse_pos, mouse_clicked, index)
+            self.player.aimed_rooms[index] = room
+            if room is not None: # a room was found at cursor position
+                self.player.selected_weapon = None
+
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:
         """
         Check if the mouse is hovering over any objects.
@@ -73,6 +81,9 @@ class Display:
         """
 
         self._interface.check_mouse_hover(mouse_pos)
+        
+        if hasattr(self, "enemy") and self.player.selected_weapon is not None:
+            self.enemy.hover_weapon(mouse_pos)
 
     def update(self) -> None:
         """
