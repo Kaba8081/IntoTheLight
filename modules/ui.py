@@ -198,6 +198,9 @@ class PowerIcon(pg.sprite.Sprite):
 
     def toggle(self, mouse_clicked: tuple[int, int, int]) -> None:
         """Update the corresponding system power level based on user input."""
+        if self.system_name in ["weapons"]: # weapons are handled separately
+            return
+
         if mouse_clicked[0]: # add power if possible
             self._room_obj.power += 1
         elif mouse_clicked[2]: # remove power if possible
@@ -233,6 +236,8 @@ class WeaponIcon():
     def update(self) -> None:
         self.state = self._weapon.state
 
+        self.selected = True if self._player.selected_weapon == self._weapon else False
+
     def draw(self, screen: pg.surface.Surface) -> None:
         color = self._colors[self.state]
         if self.hovering:
@@ -258,18 +263,20 @@ class WeaponIcon():
                 self._player.selected_weapon = self._weapon
                 self.selected = True
             else: # try to activate the weapon
-                curr_power = self._player.current_power
-                max_power = self._player.max_power
-                power_left = max_power - curr_power
-
-                if power_left >= self._weapon.req_power and self._player.check_if_system_accepts_power("weapons", self._weapon.req_power):
+                if self._player.activate_weapon(self._weapon):
                     self.state = "charging"
-                    self._player.toggle_system_power(("weapons", True), self._weapon.req_power)
-                    self._weapon.activate()
                 else:
+                    self.not_enough_power()
                     self.state = "disabled"
         elif mouse_clicked[2] and self.state in ["charging", "ready", "selected"]:
             self._player.selected_weapon = None
             self._player.toggle_system_power(("weapons", False), self._weapon.req_power)
             self._weapon.disable()
             self.state = "disabled"
+    
+    def not_enough_power(self) -> None:
+        """Displays a message that the weapon does not have enough power to be activated."""
+        
+        # TODO: implement this
+
+        return

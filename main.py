@@ -6,6 +6,7 @@ import os
 from modules.display import Display
 from modules.player import Player
 from modules.enemy import Enemy
+from modules.resources import keybinds
 
 def load_config() -> dict:
     with open("config.json", "r", encoding="utf-8-sig") as file:
@@ -37,6 +38,9 @@ def main() -> None:
                 display.mouse_clicked(mouse_pos, mouse_clicked)
                 if event.button == 1:
                     player.update(dt, mouse_pos, mouse_clicked)
+            if event.type == pg.KEYDOWN and event.key in keybinds.values():
+                player.key_pressed(event.key)
+
         # if the mouse was not clicked, check if it's hovering over objects
         if not mouse_event:
             display.check_mouse_hover(mouse_pos)

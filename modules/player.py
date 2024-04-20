@@ -2,7 +2,7 @@ import pygame as pg
 from typing import Union
 
 from modules.spaceship.spaceship import *
-from modules.resources import ship_layouts, systems
+from modules.resources import ship_layouts, systems, keybinds
 
 class Player(Spaceship):
     def __init__(self, 
@@ -26,9 +26,11 @@ class Player(Spaceship):
         self.missles = 8
         self.drone_parts = 2
         self.currency = 10
-
+        
         self.rooms = []
         self.doors = pg.sprite.Group()
+
+        self.selected_weapon = None
 
         for room in ship_layouts[ship_type]["rooms"]:
             created_room = Room(
@@ -70,51 +72,50 @@ class Player(Spaceship):
         for weapon in self.weapons:
             weapon.update()
 
-    @property
-    def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
-        empty_slots = []
-        for room in self.rooms:
-            room_slots = room.upgrade_slots
-            if room_slots is not None:
-                empty_slots.append(room_slots)
-            
-        return empty_slots if len(empty_slots) > 0 else None
+    def key_pressed(self, key: pg.key) -> None:
+        """Handles player input from the keyboard."""
 
-    @property
-    def weapons(self) -> list[Weapon]:
-        weapons = []
-        for room in self.rooms:
-            room_weapons = room.weapons
-            if room_weapons is not None:
-                weapons = weapons + room_weapons
-            
-        return weapons
+        num_of_weapons = len(self.weapons)
+
+        if key == keybinds["select_weapon1"] and num_of_weapons >= 1:
+            if self.weapons[0].state == "disabled": # activate the weapon if it's disabled
+                self.selected_weapon = self.weapons[0] if self.activate_weapon(self.weapons[0]) else None
+            else:
+                self.selected_weapon = self.weapons[0]
+        if key == keybinds["select_weapon2"] and num_of_weapons >= 2:
+            if self.weapons[1].state == "disabled": # activate the weapon if it's disabled
+                self.selected_weapon = self.weapons[1] if self.activate_weapon(self.weapons[1]) else None
+            else:
+                self.selected_weapon = self.weapons[1]
+        if key == keybinds["select_weapon3"] and num_of_weapons >= 3:
+            if self.weapons[2].state == "disabled": # activate the weapon if it's disabled
+                self.selected_weapon = self.weapons[2] if self.activate_weapon(self.weapons[2]) else None
+            else:
+                self.selected_weapon = self.weapons[2]
+        if key == keybinds["select_weapon4"] and num_of_weapons >= 4:
+            if self.weapons[3].state == "disabled": # activate the weapon if it's disabled
+                self.selected_weapon = self.weapons[3] if self.activate_weapon(self.weapons[3]) else None
+            else:
+                self.selected_weapon = self.weapons[3]
+        
+        return
+
+    def activate_weapon(self, weapon: Weapon) -> bool:
+        """
+        Try to activate a weapon if there is enough power left. If successful, return True.
+        :param weapon: Weapon - the weapon to activate
+        """
+        curr_power = self.current_power
+        max_power = self.max_power 
+        power_left = max_power - curr_power
+
+        if power_left >= weapon.req_power and self.check_if_system_accepts_power("weapons", weapon.req_power):
+            self.toggle_system_power(("weapons", True), weapon.req_power)
+            weapon.activate()
+            return True
+
+        return False
     
-    @property
-    def thrusters(self) -> Union[list[Thruster], None]:
-        thrusters = []
-        for room in self.rooms:
-            room_thrusters = room.thrusters
-            if room_thrusters is not None:
-                thrusters.append(room_thrusters)
-            
-        return thrusters if len(thrusters) > 0 else None
-
-    @property
-    def max_power(self) -> int:
-        """Return the maximum power that the ship generates."""
-
-        return 6 + self._room_enine.level * 2 # base generation 6 + each level of the engine provides 2 power
-
-    @property
-    def current_power(self) -> int:
-        """Return the current power usage of the ship."""
-
-        power_level = 0
-        for system in self.installed_systems:
-            power_level += self.installed_systems[system].power
-        return power_level
-
     def toggle_system_power(self, action: tuple[str, bool], value: int = 1) -> None:
         """ 
         Toggles the power level of a system. 
@@ -161,3 +162,48 @@ class Player(Spaceship):
         
         print("Could not check if system accepts power: System not found!")
         return False
+    
+    @property
+    def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
+        empty_slots = []
+        for room in self.rooms:
+            room_slots = room.upgrade_slots
+            if room_slots is not None:
+                empty_slots.append(room_slots)
+            
+        return empty_slots if len(empty_slots) > 0 else None
+
+    @property
+    def weapons(self) -> list[Weapon]:
+        weapons = []
+        for room in self.rooms:
+            room_weapons = room.weapons
+            if room_weapons is not None:
+                weapons = weapons + room_weapons
+            
+        return weapons
+    
+    @property
+    def thrusters(self) -> Union[list[Thruster], None]:
+        thrusters = []
+        for room in self.rooms:
+            room_thrusters = room.thrusters
+            if room_thrusters is not None:
+                thrusters.append(room_thrusters)
+            
+        return thrusters if len(thrusters) > 0 else None
+
+    @property
+    def max_power(self) -> int:
+        """Return the maximum power that the ship generates."""
+
+        return 6 + self._room_enine.level * 2 # base generation 6 + each level of the engine provides 2 power
+
+    @property
+    def current_power(self) -> int:
+        """Return the current power usage of the ship."""
+
+        power_level = 0
+        for system in self.installed_systems:
+            power_level += self.installed_systems[system].power
+        return power_level
