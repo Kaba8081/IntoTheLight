@@ -1,4 +1,5 @@
 import pygame as pg
+from typing import Literal
 
 from modules.player import Player
 from modules.spaceship.room import Room
@@ -63,6 +64,25 @@ class InterfaceController(pg.sprite.Group):
                            )
                            )
             )
+        
+        # player's status bar
+        self._status_bar_ratio = 0.75
+        self._status_bar_coords = (32, 32)
+        self._status_bar_size = (self.resolution[0] * self._status_bar_ratio, 128)
+        self._status_surface = pg.Surface(self._status_bar_size, pg.SRCALPHA)
+
+        roles = ["fuel", "missile", "drone_parts"]
+        self.resources_icons = []
+        for i in range(3):
+            self.resources_icons.append(
+                ResourceIcon(
+                    self._player,
+                    (76 * i, 64),
+                    (64, 32),
+                    roles[i]
+                    )
+                )
+        
 
     def _draw_power(self) -> None:
         """Draws power bar interface on screen."""
@@ -125,6 +145,23 @@ class InterfaceController(pg.sprite.Group):
         )
         self.surface.blit(self._wbar_surface, self._wbar_coords)
     
+    def _draw_status_bar(self) -> None:
+        self._status_surface.fill((0,0,0))
+
+        color_on = (106, 190, 48)
+
+        # draw hull hp
+        for i in range(self._player.hull_hp):
+            pg.draw.rect(self._status_surface, color_on, (i*12, 16, 8, 16))
+        
+        # draw resources
+        for icon in self.resources_icons:
+            icon.draw(self._status_surface)
+
+        self.surface.blit(self._status_surface, self._status_bar_coords)
+
+        return
+
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
         """
         Check if the mouse is clicking on any of the interface elements.
@@ -172,6 +209,8 @@ class InterfaceController(pg.sprite.Group):
             wicon.update()
 
         self._draw_weapons()
+
+        self._draw_status_bar()
 
     def draw(self, screen: pg.surface.Surface) -> None:
         """
@@ -303,5 +342,58 @@ class WeaponIcon():
         """Displays a message that the weapon does not have enough power to be activated."""
         
         # TODO: implement this
+
+        return
+    
+class HealthIcon():
+    def __init__(self, player: Player, pos: tuple[int, int], size: tuple[int, int]) -> None:
+        self._player = player
+
+        self.pos = pos
+        self.rect = pg.Rect(pos, size)
+
+        return 
+
+class ResourceIcon():
+    def __init__(self, 
+                 player: Player, 
+                 pos: tuple[int, int], 
+                 size: tuple[int, int], 
+                 role: Literal["fuel", "missile", "drone_parts"]
+                 ) -> None:
+        self._player = player
+        self._icon = textures[f"{role}_icon"]
+        self._color_normal = (255, 255, 255)
+        self._color_low = (190, 75, 75)
+        self._font = get_font("arial", 16)
+
+        self.role = role
+        self.pos = pos
+        self.rect = pg.Rect(pos, size)
+        return 
+    
+    def draw(self, screen: pg.surface.Surface) -> None:
+        resource_count = 0
+
+        match self.role:
+            case "fuel":
+                resource_count = self._player.fuel
+            case "missile":
+                resource_count = self._player.missles
+            case "drone_parts":
+                resource_count = self._player.drone_parts
+        
+        curr_color = self._color_normal if resource_count > 8 else self._color_low
+        # draw the outline box
+        pg.draw.rect(screen, curr_color, self.rect, 4)
+
+        # draw the icon
+        screen.blit(self._icon, (self.rect.centerx - 16, self.rect.centery-8))
+
+        # draw the resource count
+        label = self._font.render(str(resource_count), True, curr_color)
+        label_center = (self.rect.centerx, self.rect.centery-8)
+        
+        screen.blit(label, label_center)
 
         return

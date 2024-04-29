@@ -23,7 +23,7 @@ class Player(Spaceship):
         self.installed_weapons = {}
         self.installed_thrusters = {}
         
-        self.hull_hp = 100
+        self.hull_hp = 30
         self.fuel = 16
         self.missles = 8
         self.drone_parts = 2

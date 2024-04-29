@@ -267,6 +267,10 @@ textures = {
     "cameras_icon_on":  load_texture("engine_icon_on"),
     "bridge_icon_on":  load_texture("engine_icon_on"),
     "shields_icon_on":  load_texture("engine_icon_on"),
+
+    "fuel_icon": load_texture("weapons"),
+    "missile_icon": load_texture("weapons"),
+    "drone_parts_icon": load_texture("weapons"),
 }
 
 systems = [
