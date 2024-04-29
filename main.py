@@ -16,6 +16,8 @@ def main() -> None:
     clock = pg.time.Clock()
     dt = 0
 
+    projectile_group = []
+
     player = Player()
     enemy = Enemy(offset=(resolution[0] * RATIO,0))
     display = Display(screen, resolution, RATIO, player, enemy)

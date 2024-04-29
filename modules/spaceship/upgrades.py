@@ -1,6 +1,8 @@
 import pygame as pg
+from typing import Literal
 
 from modules.resources import textures, weapons
+from modules.projectile import Projectile
 
 class UpgradeSlot(pg.sprite.Sprite):
     def __init__(self, 
@@ -55,6 +57,7 @@ class Weapon(UpgradeSlot):
                  orientation: str,
                  weapon_id: str,
                  sprite_group: pg.sprite.Group,
+                 projectile_group: pg.sprite.Group
                  ) -> None:
 
         # textures
@@ -71,7 +74,7 @@ class Weapon(UpgradeSlot):
         self.curr_charge = 0
         self.weapon_name = weapon_id
         self.display_name = weapons[weapon_id]["name"]
-        self.state = "disabled" # disabled | charging | ready
+        self.state = "disabled"
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
     
     def activate(self) -> None:
@@ -104,6 +107,15 @@ class Weapon(UpgradeSlot):
         elif self.state == "disabled":
             self.curr_charge -= self.charge_diff # slowly decrease the charge
             self.change_texture(self._anim_idle)
+    
+    def fire(self) -> Projectile:
+        """
+        Fire the weapon.
+        """
+        self.state = "charging"
+        self.curr_charge = 0
+
+
 
     def __str__(self) -> str:
         """Return the name of the weapon."""

@@ -82,6 +82,8 @@ class Player(Spaceship):
                     door.toggle()
         
         for weapon in self.weapons:
+            if weapon.state == "ready" and weapon.curr_charge >= weapon.charge_time:
+                weapon.fire()
             weapon.update()
 
     def key_pressed(self, key: pg.key) -> None:
