@@ -27,7 +27,7 @@ class Player(Spaceship):
         self.fuel = 16
         self.missles = 8
         self.drone_parts = 2
-        self.currency = 10
+        self.scrap = 10
         
         self.rooms = []
         self.doors = pg.sprite.Group()

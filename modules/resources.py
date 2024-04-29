@@ -271,6 +271,7 @@ textures = {
     "fuel_icon": load_texture("weapons"),
     "missile_icon": load_texture("weapons"),
     "drone_parts_icon": load_texture("weapons"),
+    "scrap_icon": load_texture("weapons"),
 }
 
 systems = [

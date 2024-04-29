@@ -77,12 +77,12 @@ class InterfaceController(pg.sprite.Group):
             self.resources_icons.append(
                 ResourceIcon(
                     self._player,
-                    (76 * i, 64),
+                    (128 + 76 * i, 64),
                     (64, 32),
                     roles[i]
                     )
                 )
-        
+        self.resources_icons.append(ResourceIcon(self._player, (384, 0), (128, 48), "scrap", 24, 42))
 
     def _draw_power(self) -> None:
         """Draws power bar interface on screen."""
@@ -359,13 +359,24 @@ class ResourceIcon():
                  player: Player, 
                  pos: tuple[int, int], 
                  size: tuple[int, int], 
-                 role: Literal["fuel", "missile", "drone_parts"]
+                 role: Literal["fuel", "missile", "drone_parts", "scrap"],
+                 font_size: int = 16,
+                 icon_size: int = 24
                  ) -> None:
+        """
+        :param player: Player - the player object
+        :param pos: tuple[int, int] - the position of the icon
+        :param size: tuple[int, int] - the size of the icon
+        :param role: str - the role of the resource icon
+        :param font_size: int - the font size of the resource count
+        """
         self._player = player
         self._icon = textures[f"{role}_icon"]
+        self._icon = pg.transform.scale(self._icon, (icon_size, icon_size))
+        self._icon_rect = self._icon.get_rect()
         self._color_normal = (255, 255, 255)
         self._color_low = (190, 75, 75)
-        self._font = get_font("arial", 16)
+        self._font = get_font("arial", font_size)
 
         self.role = role
         self.pos = pos
@@ -373,6 +384,10 @@ class ResourceIcon():
         return 
     
     def draw(self, screen: pg.surface.Surface) -> None:
+        """
+        Draw the resource icon on the given surface.
+        :param screen: pg.surface.Surface - the surface to draw on
+        """
         resource_count = 0
 
         match self.role:
@@ -382,17 +397,19 @@ class ResourceIcon():
                 resource_count = self._player.missles
             case "drone_parts":
                 resource_count = self._player.drone_parts
+            case "scrap":
+                resource_count = self._player.scrap
         
         curr_color = self._color_normal if resource_count > 8 else self._color_low
         # draw the outline box
         pg.draw.rect(screen, curr_color, self.rect, 4)
 
         # draw the icon
-        screen.blit(self._icon, (self.rect.centerx - 16, self.rect.centery-8))
+        screen.blit(self._icon, (self.rect.centerx - self._icon_rect.width, self.rect.centery - self._icon_rect.height // 2))
 
         # draw the resource count
         label = self._font.render(str(resource_count), True, curr_color)
-        label_center = (self.rect.centerx, self.rect.centery-8)
+        label_center = (self.rect.centerx, self.rect.centery - label.get_height() // 2)
         
         screen.blit(label, label_center)
 
