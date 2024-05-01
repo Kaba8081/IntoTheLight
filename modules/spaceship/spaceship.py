@@ -1,25 +1,70 @@
 import pygame as pg
 from os import path
+from typing import Union
 
 from modules.spaceship.room import Room
 from modules.spaceship.door import Door
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
-from modules.resources import ship_layouts
+from modules.resources import ship_layouts, systems
 
 class Spaceship:
     def __init__(self, ship_type: str, enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
-        self.rooms = []
+        """
+        :param ship_type: str - The type of the spaceship.
+        :param enemy: bool - If the spaceship is an enemy.
+        :param offset: tuple[int, int] - The offset of the spaceship.
+        """
+        # sprites
         self.doors = pg.sprite.Group()
+        self.projectiles = []
+
+        # required systems
+        self._room_enine = None
+        self._room_weapons = None
+        self._room_oxygen = None
+        self._room_bridge = None
+        self.rooms = []
+
+        # required data about these systems
+        self.installed_systems = {}
+        self.installed_weapons = {}
+        self.installed_thrusters = {}
+        
+        self.hull_hp = 30
+
+        # weapon logic
+        self.aimed_rooms = {} # weapon_index: room
+
         for room in ship_layouts[ship_type]["rooms"]:
             self.rooms.append(Room(
                 (room["pos"][0]*32, room["pos"][1]*32),
                 (room["pos"][0]*32 + offset[1], room["pos"][1]*32 + offset[0]),
                 room["tiles"],
                 role=room["role"] if "role" in room else None,
+                level=room["level"] if "level" in room else 0,
                 upgrade_slots=room["upgrade_slots"] if "upgrade_slots" in room else {},
                 enemy_ship=enemy
             ))
+            if "role" in room and room["role"] in systems:
+                self.installed_systems[room["role"]] = self.rooms[-1]
+
+        # find and power essential systems
+        for system_name in systems:
+            match system_name:
+                case "engines":
+                    self._room_enine = self.installed_systems[system_name]
+                    self._room_enine.power = 1
+                case "weapons":
+                    self._room_weapons = self.installed_systems[system_name]
+                case "medbay":
+                    self._room_medbay = self.installed_systems[system_name]
+                case "o2":
+                    self._room_oxygen = self.installed_systems[system_name]
+                    self._room_oxygen.power = 1
+                case "bridge":
+                    self._room_bridge = self.installed_systems[system_name]
+                    self._room_bridge.power = 1
         
         if enemy: # flip all the rooms hitboxes horizontally
             self.centery = self.get_center()[0]
@@ -37,7 +82,19 @@ class Spaceship:
         for group in self.rooms:
             group.draw(screen)
 
+        for projectile in self.projectiles:
+            projectile.draw(screen)
+
         self.doors.draw(screen)
+    
+    def update(self, dt: float) -> None:
+        for weapon in self.weapons:
+            if weapon.state == "ready" and bool(weapon): # and weapon.target is not None
+                self.projectiles += weapon.fire()
+            weapon.update(dt)
+        
+        for projectile in self.projectiles:
+            projectile.update(dt)
 
     def get_center(self) -> tuple[int, int]:
         """
@@ -160,6 +217,23 @@ class Spaceship:
                                 )
                     Door(door_coords, self.doors)
     
+    def activate_weapon(self, weapon: Weapon) -> bool:
+        """
+        Try to activate a weapon if there is enough power left. If successful, return True.
+        :param weapon: Weapon - the weapon to activate
+        """
+
+        curr_power = self.current_power
+        max_power = self.max_power 
+        power_left = max_power - curr_power
+
+        if power_left >= weapon.req_power and self.check_if_system_accepts_power("weapons", weapon.req_power):
+            self.toggle_system_power(("weapons", True), weapon.req_power)
+            weapon.activate()
+            return True
+
+        return False
+    
     def dev_draw_room_hitboxes(self, screen: pg.surface.Surface) -> None:
         """
         Draw the hitbox of the rooms for debugging.
@@ -168,3 +242,33 @@ class Spaceship:
 
         for room in self.rooms:
             room.dev_draw_hitbox(screen)
+
+    @property
+    def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
+        empty_slots = []
+        for room in self.rooms:
+            room_slots = room.upgrade_slots
+            if room_slots is not None:
+                empty_slots.append(room_slots)
+            
+        return empty_slots if len(empty_slots) > 0 else None
+
+    @property
+    def weapons(self) -> list[Weapon]:
+        weapons = []
+        for room in self.rooms:
+            room_weapons = room.weapons
+            if room_weapons is not None:
+                weapons = weapons + room_weapons
+            
+        return weapons
+    
+    @property
+    def thrusters(self) -> Union[list[Thruster], None]:
+        thrusters = []
+        for room in self.rooms:
+            room_thrusters = room.thrusters
+            if room_thrusters is not None:
+                thrusters.append(room_thrusters)
+            
+        return thrusters if len(thrusters) > 0 else None

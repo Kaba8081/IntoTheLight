@@ -16,21 +16,24 @@ def main() -> None:
     clock = pg.time.Clock()
     dt = 0
 
-    projectile_group = []
-
     player = Player()
     enemy = Enemy(offset=(resolution[0] * RATIO,0))
     display = Display(screen, resolution, RATIO, player, enemy)
 
+    mouse_pos = pg.mouse.get_pos()
+    mouse_event = False
+
     while True: # game loop
-        mouse_pos = pg.mouse.get_pos()
-        mouse_event = False
+        mouse_focused = pg.mouse.get_focused()
+        if mouse_focused:
+            mouse_pos = pg.mouse.get_pos()
+            mouse_event = False
 
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
             
-            if event.type == pg.MOUSEBUTTONDOWN:
+            if event.type == pg.MOUSEBUTTONDOWN and mouse_focused:
                 mouse_event = True
                 mouse_clicked = pg.mouse.get_pressed()
                 display.mouse_clicked(mouse_pos, mouse_clicked)
@@ -45,6 +48,7 @@ def main() -> None:
             display.check_mouse_hover(mouse_pos)
 
         player.update(dt, mouse_pos)
+        enemy.update(dt)
         display.update()
         display.draw()
 

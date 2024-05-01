@@ -4,68 +4,23 @@ from typing import Union
 from modules.spaceship.spaceship import Spaceship
 from modules.spaceship.upgrades import UpgradeSlot, Weapon, Thruster
 from modules.spaceship.room import Room
-from modules.resources import ship_layouts, systems, keybinds
+from modules.resources import keybinds
 
 class Player(Spaceship):
     def __init__(self, 
                  ship_type: str = "scout"
                  ) -> None:
         
-        self.installed_systems = {}
-
-        # required systems
-        self._room_enine = None
-        self._room_weapons = None
-        self._room_oxygen = None
-        self._room_bridge = None
-
-        # required data about these systems
-        self.installed_weapons = {}
-        self.installed_thrusters = {}
-        
-        self.hull_hp = 30
+        # additional player data
         self.fuel = 16
         self.missles = 8
         self.drone_parts = 2
         self.scrap = 10
-        
-        self.rooms = []
-        self.doors = pg.sprite.Group()
 
         # weapon logic
         self.selected_weapon = None
-        self.aimed_rooms = {} # weapon_index: room
 
-        for room in ship_layouts[ship_type]["rooms"]:
-            created_room = Room(
-                (room["pos"][0]*32, room["pos"][1]*32),
-                (room["pos"][0]*32, room["pos"][1]*32),
-                room["tiles"],
-                role=room["role"] if "role" in room else None,
-                level=room["level"] if "level" in room else 0,
-                upgrade_slots=room["upgrade_slots"] if "upgrade_slots" in room else {},
-                )
-            self.rooms.append(created_room)
-
-            if "role" in room and room["role"] in systems:
-                self.installed_systems[room["role"]] = created_room
-        
-        # find and power essential systems
-        for system_name in systems:
-            match system_name:
-                case "engines":
-                    self._room_enine = self.installed_systems[system_name]
-                    self._room_enine.power = 1
-                case "weapons":
-                    self._room_weapons = self.installed_systems[system_name]
-                case "medbay":
-                    self._room_medbay = self.installed_systems[system_name]
-                case "o2":
-                    self._room_oxygen = self.installed_systems[system_name]
-                    self._room_oxygen.power = 1
-                case "bridge":
-                    self._room_bridge = self.installed_systems[system_name]
-                    self._room_bridge.power = 1
+        super().__init__(ship_type)
     
     def update(self, dt: float, mouse_pos: tuple[int, int], mouse_btns: tuple[bool,bool,bool]  = None) -> None:
         """
@@ -74,17 +29,14 @@ class Player(Spaceship):
         :param mouse_pos: tuple[int, int] - the current mouse position
         :param mouse_clicked: tuple[bool, bool, bool] - the current state of the mouse buttons
         """
+        super().update(dt)
 
+        # check if the player clicked / is hovering on a door
         for door in self.doors:
             if door.rect.collidepoint(mouse_pos):
                 door.hovering = True
                 if mouse_btns is not None and mouse_btns[0]:
                     door.toggle()
-        
-        for weapon in self.weapons:
-            if weapon.state == "ready" and weapon.curr_charge >= weapon.charge_time:
-                weapon.fire()
-            weapon.update()
 
     def key_pressed(self, key: pg.key) -> None:
         """Handles player input from the keyboard."""
@@ -113,23 +65,6 @@ class Player(Spaceship):
                 self.selected_weapon = self.weapons[3]
         
         return
-
-    def activate_weapon(self, weapon: Weapon) -> bool:
-        """
-        Try to activate a weapon if there is enough power left. If successful, return True.
-        :param weapon: Weapon - the weapon to activate
-        """
-
-        curr_power = self.current_power
-        max_power = self.max_power 
-        power_left = max_power - curr_power
-
-        if power_left >= weapon.req_power and self.check_if_system_accepts_power("weapons", weapon.req_power):
-            self.toggle_system_power(("weapons", True), weapon.req_power)
-            weapon.activate()
-            return True
-
-        return False
     
     def toggle_system_power(self, action: tuple[str, bool], value: int = 1) -> None:
         """ 
@@ -179,29 +114,6 @@ class Player(Spaceship):
         
         print("Could not check if system accepts power: System not found!")
         return False
-
-    @property
-    def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
-        empty_slots = []
-        for room in self.rooms:
-            room_slots = room.upgrade_slots
-            if room_slots is not None:
-                empty_slots.append(room_slots)
-            
-        return empty_slots if len(empty_slots) > 0 else None
-
-    @property
-    def weapons(self) -> list[Weapon]:
-        weapons = []
-        for room in self.rooms:
-            room_weapons = room.weapons
-            if room_weapons is not None:
-                weapons = weapons + room_weapons
-            
-        return weapons
-    
-    @property
-    def thrusters(self) -> Union[list[Thruster], None]:
         thrusters = []
         for room in self.rooms:
             room_thrusters = room.thrusters

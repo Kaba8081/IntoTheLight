@@ -56,8 +56,7 @@ class Weapon(UpgradeSlot):
                  pos: tuple[int, int], 
                  orientation: str,
                  weapon_id: str,
-                 sprite_group: pg.sprite.Group,
-                 projectile_group: pg.sprite.Group
+                 sprite_group: pg.sprite.Group
                  ) -> None:
 
         # textures
@@ -67,14 +66,17 @@ class Weapon(UpgradeSlot):
         self._anim_ready = self._txt_set["ready"]
 
         # logic
-
         self.req_power = weapons[weapon_id]["req_power"]
-        self.charge_time = 0
-        self.charge_diff = 1
+        self.charge_time = 100
+        self.charge_diff = 0.2
         self.curr_charge = 0
+        self.volley_shots = 3
+        self.volley_delay = 0.3
+        self.projectile_queue = [] # list of projectiles to be fired
         self.weapon_name = weapon_id
         self.display_name = weapons[weapon_id]["name"]
         self.state = "disabled"
+        self.target = None
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
     
     def activate(self) -> None:
@@ -91,12 +93,13 @@ class Weapon(UpgradeSlot):
         self.change_texture(self._anim_idle)
         self.state = "disabled"
 
-    def update(self) -> None: # TODO: implement charge time
+    def update(self, dt) -> None: # TODO: implement charge time
         """
-        Update the weapon's state.
+        Update the weapon's state and fire queued projectiles.
         """
         if self.state == "charging":
-            self.change_texture(self._anim_charge[self.curr_charge])
+            #self.change_texture(self._anim_charge[self.curr_charge])
+            self.change_texture(self._anim_charge[0])
             self.curr_charge += self.charge_diff
 
             if self.curr_charge >= self.charge_time:
@@ -107,15 +110,25 @@ class Weapon(UpgradeSlot):
         elif self.state == "disabled":
             self.curr_charge -= self.charge_diff # slowly decrease the charge
             self.change_texture(self._anim_idle)
+
+        for projectile in self.projectile_queue:
+            if projectile.hit_target:
+                self.projectile_queue.remove(projectile)
     
-    def fire(self) -> Projectile:
+    def fire(self, delay: float = 0) -> tuple[Projectile]:
         """
         Fire the weapon.
         """
-        self.state = "charging"
-        self.curr_charge = 0
+        if self.state == "ready":
+            self.state = "charging"
+            self.curr_charge = 0
 
+        for i in range(self.volley_shots):
+            delay = self.volley_delay * i
+            projectile = Projectile(self.rect.center, (2000, 300), "laser", 1, 300, (255,0,0), 15, 3, delay)
+            self.projectile_queue.append(projectile)
 
+        return self.projectile_queue
 
     def __str__(self) -> str:
         """Return the name of the weapon."""

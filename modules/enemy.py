@@ -6,14 +6,10 @@ from modules.spaceship.room import Room
 
 class Enemy(Spaceship):
     def __init__(self, 
-                 projectile_group: pg.sprite.Group,
                  ship_type: str = "cruiser",
                  offset: tuple[int, int] = (0,0),
                  ) -> None:
-        Spaceship.__init__(self, ship_type, True, offset, projectile_group)
-    
-    def update(self, dt: float) -> None:
-        pass
+        Spaceship.__init__(self, ship_type, True, offset)
     
     def select_room(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool], index: int) -> Union[Room, None]:
         """

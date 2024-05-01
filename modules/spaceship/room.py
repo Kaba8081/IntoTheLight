@@ -47,7 +47,7 @@ class Room(pg.sprite.Group):
 
         for upgrade_type in upgrade_slots:
             for orientation in upgrade_slots[upgrade_type]:
-                self.place_upgrade(upgrade_type, orientation, upgrade_slots[upgrade_type][orientation], projectile_group)
+                self.place_upgrade(upgrade_type, orientation, upgrade_slots[upgrade_type][orientation])
         
         # check if the room has a role (is a system room)
         self.role = role if role is not None else None
@@ -129,13 +129,12 @@ class Room(pg.sprite.Group):
         self.hitbox.x += distance[0]
         self.hitbox.y += distance[1]
 
-    def place_upgrade(self, upgrade_type: str, orientation: str, upgrade_name: str, projectile_group: pg.sprite.Group) -> None:
+    def place_upgrade(self, upgrade_type: str, orientation: str, upgrade_name: str) -> None:
         """
         Place an upgrade slot or a specified weapon in the given slot.
         :param upgrade_type: str - the type of upgrade slot
         :param orientation: str - the orientation of the upgrade slot
         :param upgrade_name: str - the name of the upgrade
-        :param projectile_group: pg.sprite.Group - the group to add the projectile to
         """
         
         # find the position of the upgrade slot
