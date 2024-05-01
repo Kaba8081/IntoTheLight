@@ -7,9 +7,10 @@ from modules.spaceship.room import Room
 class Enemy(Spaceship):
     def __init__(self, 
                  ship_type: str = "cruiser",
+                 screen_size: tuple[int, int] = (800, 600),
                  offset: tuple[int, int] = (0,0),
                  ) -> None:
-        Spaceship.__init__(self, ship_type, True, offset)
+        super().__init__(ship_type, screen_size, True, offset)
     
     def select_room(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> Union[Room, None]:
         """

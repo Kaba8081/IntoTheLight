@@ -88,15 +88,18 @@ class Display:
         """
         Update the display.
         """
-        self.player.draw(self._player_screen, self._enemy_screen)
-
-        self._interface.update()
-
         self._enemy_screen = pg.Surface((
             self._screen.get_height(),
             self._screen.get_width() * (1-self.ratio)
             ))
-        self.enemy.draw(self._enemy_screen, self._player_screen)
+        
+        self.player.draw(self._player_screen)
+        self.enemy.draw(self._enemy_screen)
+
+        self.player.draw_projectiles(self._player_screen, self._enemy_screen)
+        self.enemy.draw_projectiles(self._enemy_screen, self._player_screen)
+
+        self._interface.update()
         self._enemy_screen = pg.transform.rotate(self._enemy_screen,90)
 
     def draw(self) -> None:

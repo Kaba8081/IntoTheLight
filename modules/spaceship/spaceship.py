@@ -1,6 +1,6 @@
 import pygame as pg
-from os import path
 from typing import Union
+from random import randint
 
 from modules.spaceship.room import Room
 from modules.spaceship.door import Door
@@ -9,13 +9,14 @@ from modules.spaceship.upgrades import *
 from modules.resources import ship_layouts, systems
 
 class Spaceship:
-    def __init__(self, ship_type: str, enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
+    def __init__(self, ship_type: str, screen_size: tuple[int, int], enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
         """
         :param ship_type: str - The type of the spaceship.
+        :param screen_size: tuple[int, int] - The size of the screen the ship is rendered on.
         :param enemy: bool - If the spaceship is an enemy.
         :param offset: tuple[int, int] - The offset of the spaceship.
         """
-        # sprites
+        self.screen_size = screen_size
         self.doors = pg.sprite.Group()
         self.projectiles = []
 
@@ -81,15 +82,20 @@ class Spaceship:
             group.draw(screen)
 
         self.doors.draw(screen)
-
+    
+    def draw_projectiles(self, screen: pg.Surface, enemy_screen: pg.Surface) -> None:
         for projectile in self.projectiles:
-            vector_pos = projectile.position()
-            if self.enemy:
+            v_pos = projectile.position()
+
+            if self.enemy: # TODO: create the same function for enemy projectiles
                 pass
             else:
-                if vector_pos[0] >= screen.get_width():
+                if v_pos[0] >= screen.get_width():
                     projectile.switched_screens = True
-                    #projectile.update_vectors((0,))
+                    projectile.update_vectors((
+                        enemy_screen.get_width(),
+                        enemy_screen.get_height()//2  + randint(-25, 25)
+                    ))
 
             if projectile.switched_screens:
                 projectile.draw(enemy_screen)
@@ -99,12 +105,18 @@ class Spaceship:
     def update(self, dt: float) -> None:
         for weapon in self.weapons:
             if weapon.state == "ready" and bool(weapon) and weapon.target is not None:
-                self.projectiles += weapon.fire()
+                self.projectiles += weapon.fire(
+                    (self.screen_size[0]+100, 
+                     self.screen_size[1]//2 + randint(-25,25)),
+                    weapon.target)
             weapon.update(dt)
         
         for projectile in self.projectiles:
-            print(projectile.position())
-            projectile.update(dt)
+            if projectile.hit_target:
+                self.projectiles.remove(projectile)
+                del projectile
+            else:
+                projectile.update(dt)
 
     def get_center(self) -> tuple[int, int]:
         """

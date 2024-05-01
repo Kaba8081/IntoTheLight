@@ -8,9 +8,10 @@ from modules.resources import keybinds
 
 class Player(Spaceship):
     enemy = False
-    
+
     def __init__(self, 
-                 ship_type: str = "scout"
+                 ship_type: str = "scout",
+                 screen_size: tuple[int, int] = (800, 600)
                  ) -> None:
         
         # additional player data
@@ -22,7 +23,7 @@ class Player(Spaceship):
         # weapon logic
         self.selected_weapon = None
 
-        super().__init__(ship_type)
+        super().__init__(ship_type, screen_size)
     
     def update(self, dt: float, mouse_pos: tuple[int, int], mouse_btns: tuple[bool,bool,bool]  = None) -> None:
         """

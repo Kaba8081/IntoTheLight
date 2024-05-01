@@ -1,6 +1,9 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union
 import pygame as pg
-from os import path
-from typing import Union
+
+if TYPE_CHECKING:
+    from modules.spaceship.room import Projectile
 
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
@@ -161,6 +164,17 @@ class Room(pg.sprite.Group):
             self.upgrade_slots[self._upgrade_index] = UpgradeSlot(upgrade_pos, orientation, textures["upgrade_slot"], self, upgrade_type)
         
         self._upgrade_index += 1
+
+        return
+
+    def take_damage(self, projectile: Projectile) -> None:
+        """
+        Take damage to the room.
+        :param projectile: Projectile - the projectile that hit the room
+        """
+
+        # TODO: implement damage taking
+        print("Room took damage!")
 
         return
 

@@ -130,7 +130,7 @@ class Weapon(UpgradeSlot):
             if projectile.hit_target:
                 self.projectile_queue.remove(projectile)
     
-    def fire(self, delay: float = 0) -> tuple[Projectile]:
+    def fire(self, first_pos: tuple[int, int], target_room: Room) -> tuple[Projectile]:
         """
         Fire the weapon.
         """
@@ -140,7 +140,7 @@ class Weapon(UpgradeSlot):
 
         for i in range(self.volley_shots):
             delay = self.volley_delay * i
-            projectile = Projectile(self.rect.center, (2000, 300), "laser", 1, 300, (255,0,0), 15, 3, delay)
+            projectile = Projectile(self.rect.center, first_pos, "laser", 1, 300, (255,0,0), 15, 3, delay, target_room)
             self.projectile_queue.append(projectile)
 
         return self.projectile_queue
