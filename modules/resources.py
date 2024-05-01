@@ -31,6 +31,8 @@ def load_texture(name: str, new_size: tuple[int,int]=None, extension: str=".png"
         texture = pg.transform.scale(texture, new_size)
     return texture
 
+CONFIG = load_config()
+
 keybinds = {
     "select_weapon1" : pg.K_1,
     "select_weapon2" : pg.K_2,

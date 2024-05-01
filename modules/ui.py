@@ -268,20 +268,20 @@ class PowerIcon(pg.sprite.Sprite):
         return self.system_name
 
 class WeaponIcon():
+    _colors = {
+        "disabled": (135, 135, 135),
+        "charging": (50,50,50),
+        "ready": (135, 247, 104),
+        "hovering": (100, 100, 100),
+        "ready_hovering": (94, 186, 69),
+        "selected": (247, 198, 74)
+    }
+
     def __init__(self, player: Player, weapon: Weapon, pos: tuple[int, int], real_pos: tuple[int, int], size: tuple[int, int]) -> None:
         self._player = player
         self._weapon = weapon
         self._font = get_font("arial", 16)
         self._label = self._font.render(str(weapon), True, (255,255,255))
-        
-        self._colors = {
-            "disabled": (135, 135, 135),
-            "charging": (50,50,50),
-            "ready": (135, 247, 104),
-            "hovering": (100, 100, 100),
-            "ready_hovering": (94, 186, 69),
-            "selected": (247, 198, 74)
-        }
 
         self.rect = pg.Rect(pos, size)
         self.hitbox = pg.Rect(real_pos, size)
@@ -303,7 +303,7 @@ class WeaponIcon():
             color = self._colors["hovering"]
         if self.hovering and self.state == "ready":
             color = self._colors["ready_hovering"]
-        if self.selected and self.state == "ready":
+        if self.selected and (self.state == "ready" or self.state == "charging"):
             color = self._colors["selected"]
 
         pg.draw.rect(screen, color, self.rect, 4) # draw outline         

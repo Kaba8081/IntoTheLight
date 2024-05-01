@@ -1,5 +1,9 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union
 import pygame as pg
-from typing import Literal
+
+if TYPE_CHECKING:
+    from modules.spaceship.room import Room
 
 from modules.resources import textures, weapons
 from modules.projectile import Projectile
@@ -66,9 +70,11 @@ class Weapon(UpgradeSlot):
         self._anim_ready = self._txt_set["ready"]
 
         # logic
+        self._target = None
+
         self.req_power = weapons[weapon_id]["req_power"]
         self.charge_time = 100
-        self.charge_diff = 0.2
+        self.charge_diff = 15
         self.curr_charge = 0
         self.volley_shots = 3
         self.volley_delay = 0.3
@@ -76,7 +82,6 @@ class Weapon(UpgradeSlot):
         self.weapon_name = weapon_id
         self.display_name = weapons[weapon_id]["name"]
         self.state = "disabled"
-        self.target = None
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
     
     def activate(self) -> None:
@@ -98,19 +103,29 @@ class Weapon(UpgradeSlot):
         Update the weapon's state and fire queued projectiles.
         """
         if self.state == "charging":
-            #self.change_texture(self._anim_charge[self.curr_charge])
-            self.change_texture(self._anim_charge[0])
-            self.curr_charge += self.charge_diff
-
             if self.curr_charge >= self.charge_time:
                 self.state = "ready"
                 self.change_texture(self._anim_ready)
+
+            anim_charge_len = len(self._anim_charge)
+            anim_charge_index = int(self.curr_charge // (self.charge_time // anim_charge_len + 1)) # + 1 is to account for floating point errors (it could break in the future)
+
+            self.change_texture(self._anim_charge[anim_charge_index])
+            self.curr_charge += round(self.charge_diff * dt, 2)
+        elif self.state == "disabled":
+            self.curr_charge -= round(self.charge_diff * dt, 2) # slowly decrease the charge
+
+            anim_charge_len = len(self._anim_charge)
+            anim_charge_index = int((self.curr_charge) // (self.charge_time // anim_charge_len))
+
+            self.change_texture(self._anim_charge[anim_charge_index])
+
+            if self.curr_charge <= 0:
+                self.curr_charge = 0
+                self.change_texture(self._anim_idle)
         elif self.state == "ready":
             self.change_texture(self._anim_ready)
-        elif self.state == "disabled":
-            self.curr_charge -= self.charge_diff # slowly decrease the charge
-            self.change_texture(self._anim_idle)
-
+            
         for projectile in self.projectile_queue:
             if projectile.hit_target:
                 self.projectile_queue.remove(projectile)
@@ -137,6 +152,22 @@ class Weapon(UpgradeSlot):
     def __bool__(self) -> bool:
         """Return True if the weapon is ready to fire."""
         return self.state == "ready"
+
+    @property
+    def target(self) -> Union[Room, None]:
+        """
+        Return the target of the weapon.
+        :return: Room - the target room
+        """
+        return self._target
+
+    @target.setter
+    def target(self, room: Union[Room, None]) -> None:
+        """
+        Set the target of the weapon.
+        :param room: Room - the target room
+        """
+        self._target = room
 
 class Thruster(UpgradeSlot):
     def __init__(self, 

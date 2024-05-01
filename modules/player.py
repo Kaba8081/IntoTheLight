@@ -7,6 +7,8 @@ from modules.spaceship.room import Room
 from modules.resources import keybinds
 
 class Player(Spaceship):
+    enemy = False
+    
     def __init__(self, 
                  ship_type: str = "scout"
                  ) -> None:

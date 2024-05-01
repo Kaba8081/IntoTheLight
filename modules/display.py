@@ -67,10 +67,9 @@ class Display:
         self._interface.mouse_clicked(mouse_pos, mouse_clicked)
 
         if hasattr(self, "enemy") and self.player.selected_weapon is not None:
-            index = self.player.weapons.index(self.player.selected_weapon)
+            room = self.enemy.select_room(mouse_pos, mouse_clicked)
+            self.player.selected_weapon.target = room
 
-            room = self.enemy.select_room(mouse_pos, mouse_clicked, index)
-            self.player.aimed_rooms[index] = room
             if room is not None: # a room was found at cursor position
                 self.player.selected_weapon = None
 
@@ -89,21 +88,21 @@ class Display:
         """
         Update the display.
         """
+        self.player.draw(self._player_screen, self._enemy_screen)
 
         self._interface.update()
+
         self._enemy_screen = pg.Surface((
             self._screen.get_height(),
             self._screen.get_width() * (1-self.ratio)
             ))
-        self.enemy.draw(self._enemy_screen)
+        self.enemy.draw(self._enemy_screen, self._player_screen)
         self._enemy_screen = pg.transform.rotate(self._enemy_screen,90)
 
     def draw(self) -> None:
         """
         Draw's the display contents on screen.
         """
-
-        self.player.draw(self._player_screen)
 
         self._screen.blit(self._player_screen, (0,0))
         self._screen.blit(self._enemy_screen, (self._screen.get_width() * self.ratio, 0))

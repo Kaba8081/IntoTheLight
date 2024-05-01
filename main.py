@@ -3,22 +3,20 @@ import pygame as pg
 from modules.display import Display
 from modules.player import Player
 from modules.enemy import Enemy
-from modules.resources import keybinds, load_config
+from modules.resources import keybinds, CONFIG
 
 def main() -> None:
     pg.init()
 
-    config = load_config()
-    RATIO = 0.65
-    resolution = [int(value) for value in config["resolution"].split("x")]
+    resolution = [int(value) for value in CONFIG["resolution"].split("x")]
     screen = pg.display.set_mode(resolution)
     pg.display.set_caption("IntoTheLight")
     clock = pg.time.Clock()
     dt = 0
 
     player = Player()
-    enemy = Enemy(offset=(resolution[0] * RATIO,0))
-    display = Display(screen, resolution, RATIO, player, enemy)
+    enemy = Enemy(offset=(resolution[0] * float(CONFIG["ratio"]),0))
+    display = Display(screen, resolution, float(CONFIG["ratio"]), player, enemy)
 
     mouse_pos = pg.mouse.get_pos()
     mouse_event = False

@@ -33,9 +33,6 @@ class Spaceship:
         
         self.hull_hp = 30
 
-        # weapon logic
-        self.aimed_rooms = {} # weapon_index: room
-
         for room in ship_layouts[ship_type]["rooms"]:
             self.rooms.append(Room(
                 (room["pos"][0]*32, room["pos"][1]*32),
@@ -73,27 +70,40 @@ class Spaceship:
                 hitbox_y = room.hitbox.centery
                 room.hitbox.centery = self.centery - hitbox_y + self.centery
 
-    def draw(self, screen: pg.Surface) -> None:
+    def draw(self, screen: pg.Surface, enemy_screen: pg.Surface = None) -> None:
         """
         Draw's the spaceship and it's components on screen.
         :param screen: The screen to draw the spaceship on.
+        :param enemy_screen: pg.Surface - The screen of the enemy.
         """
 
         for group in self.rooms:
             group.draw(screen)
 
-        for projectile in self.projectiles:
-            projectile.draw(screen)
-
         self.doors.draw(screen)
-    
+
+        for projectile in self.projectiles:
+            vector_pos = projectile.position()
+            if self.enemy:
+                pass
+            else:
+                if vector_pos[0] >= screen.get_width():
+                    projectile.switched_screens = True
+                    #projectile.update_vectors((0,))
+
+            if projectile.switched_screens:
+                projectile.draw(enemy_screen)
+            else:
+                projectile.draw(screen)
+
     def update(self, dt: float) -> None:
         for weapon in self.weapons:
-            if weapon.state == "ready" and bool(weapon): # and weapon.target is not None
+            if weapon.state == "ready" and bool(weapon) and weapon.target is not None:
                 self.projectiles += weapon.fire()
             weapon.update(dt)
         
         for projectile in self.projectiles:
+            print(projectile.position())
             projectile.update(dt)
 
     def get_center(self) -> tuple[int, int]:
