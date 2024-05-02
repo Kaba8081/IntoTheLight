@@ -182,7 +182,7 @@ ship_layouts = {
                 "level": 1,
                 "upgrade_slots":{
                     "weapon": {
-                        "top": "laser_mk1",
+                        "top": "laser_mk2",
                     }
                 }
             },
@@ -259,6 +259,16 @@ textures = {
                 load_texture("laser_mk1_charge_3"),
             ],
             "ready": load_texture("laser_mk1_ready"),
+        },
+        "laser_mk2":
+        {
+            "disabled": load_texture("laser_mk1_off"),
+            "charging":[
+                load_texture("laser_mk1_charge_1"),
+                load_texture("laser_mk1_charge_2"),
+                load_texture("laser_mk1_charge_3"),
+            ],
+            "ready": load_texture("laser_mk1_ready"),
         }
     },
 
@@ -308,7 +318,17 @@ systems = [
 weapons = {
     "laser_mk1": {
         "name": "Laser MK1",
-        "req_power": 1
+        "req_power": 1,
+        "charge_time": 100,
+        "volley_shots": 1,
+        "volley_delay": 0.3,
+    }, 
+    "laser_mk2": {
+        "name": "Laser MK2",
+        "req_power": 1,
+        "charge_time": 100,
+        "volley_shots": 3,
+        "volley_delay": 0.3,
     }
 }
 

@@ -71,17 +71,18 @@ class Weapon(UpgradeSlot):
 
         # logic
         self._target = None
-
-        self.req_power = weapons[weapon_id]["req_power"]
-        self.charge_time = 100
-        self.charge_diff = 15
+        self.charge_speed = 15
         self.curr_charge = 0
-        self.volley_shots = 3
-        self.volley_delay = 0.3
         self.projectile_queue = [] # list of projectiles to be fired
+        self.state = "disabled"
+
         self.weapon_name = weapon_id
         self.display_name = weapons[weapon_id]["name"]
-        self.state = "disabled"
+        self.req_power = weapons[weapon_id]["req_power"]
+        self.charge_time = weapons[weapon_id]["charge_time"]
+        self.volley_shots = weapons[weapon_id]["volley_shots"]
+        self.volley_delay = weapons[weapon_id]["volley_delay"]
+
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
     
     def activate(self) -> None:
@@ -111,9 +112,9 @@ class Weapon(UpgradeSlot):
             anim_charge_index = int(self.curr_charge // (self.charge_time // anim_charge_len + 1)) # + 1 is to account for floating point errors (it could break in the future)
 
             self.change_texture(self._anim_charge[anim_charge_index])
-            self.curr_charge += round(self.charge_diff * dt, 2)
+            self.curr_charge += round(self.charge_speed * dt, 2)
         elif self.state == "disabled":
-            self.curr_charge -= round(self.charge_diff * dt, 2) # slowly decrease the charge
+            self.curr_charge -= round(self.charge_speed * dt, 2) # slowly decrease the charge
 
             anim_charge_len = len(self._anim_charge)
             anim_charge_index = int((self.curr_charge) // (self.charge_time // anim_charge_len))

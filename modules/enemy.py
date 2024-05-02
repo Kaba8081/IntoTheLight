@@ -1,5 +1,6 @@
 import pygame as pg
 from typing import Union
+from random import randint
 
 from modules.spaceship.spaceship import Spaceship
 from modules.spaceship.room import Room
@@ -11,6 +12,8 @@ class Enemy(Spaceship):
                  offset: tuple[int, int] = (0,0),
                  ) -> None:
         super().__init__(ship_type, screen_size, True, offset)
+
+        self.hull_hp = randint(12,25)
     
     def select_room(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> Union[Room, None]:
         """

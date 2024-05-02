@@ -14,21 +14,19 @@ class Display:
                  screen: pg.Surface, 
                  resolution: tuple[int, int],
                  ratio: float = 0.65, # player side / enemy side ratio
-                 *args,
+                 player: Player = None,
+                 enemy: Enemy = None,
                  ) -> None:
-        
-        for arg in args:
-            if type(arg) is Player:
-                self._player = arg
-            elif type(arg) is Enemy:
-                self.enemy_ship = arg
 
         if not hasattr(self, "player"):
             print("Player was not passed to display class!")
 
-        self._interface = InterfaceController(resolution, self._player, ratio=ratio, enemy=self.enemy_ship)
+        self._interface = InterfaceController(resolution, player, ratio=ratio, enemy=enemy)
         self._screen = screen
         self.ratio = ratio
+
+        self._player = player
+        self.enemy_ship = enemy
 
         self._player_screen = pg.Surface((
             screen.get_width() * self.ratio,
@@ -92,6 +90,7 @@ class Display:
         """
         Draw's the display contents on screen.
         """
+        self._interface.draw_enemy_interface(self._enemy_screen)
 
         self._screen.blit(self._player_screen, (0,0))
         self._screen.blit(self._enemy_screen, (self._screen.get_width() * self.ratio, 0))
@@ -132,6 +131,8 @@ class Display:
     @enemy_ship.setter
     def enemy_ship(self, value: Union[Enemy, None]) -> None: #TODO: change User Interface if enemy is changed
         if value == None:
-            pass
+            self._enemy = None
+            self._interface = None
         else:
             self._enemy = value
+            self._interface.enemy = value

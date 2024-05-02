@@ -10,6 +10,9 @@ from modules.spaceship.room import Room
 from modules.resources import textures, get_font, button_palletes
 
 class InterfaceController(pg.sprite.Group):
+    _power_color_on = (106, 190, 48)
+    _power_color_off = (132, 126, 135)
+
     def __init__(self, resolution: tuple[int,int], player: Player, ratio: float = .65, enemy: Enemy = None) -> None:
         pg.sprite.Group.__init__(self)
         self.surface = pg.Surface(resolution, pg.SRCALPHA)
@@ -83,7 +86,7 @@ class InterfaceController(pg.sprite.Group):
             )
         
         # player's status bar
-        self._status_bar_ratio = 0.75
+        self._status_bar_ratio = ratio - 0.1
         self._status_bar_coords = (32, 32)
         self._status_bar_size = (self.resolution[0] * self._status_bar_ratio, 128)
         self._status_surface = pg.Surface(self._status_bar_size, pg.SRCALPHA)
@@ -101,21 +104,23 @@ class InterfaceController(pg.sprite.Group):
                 )
         self.resources_icons.append(ResourceIcon(self._player, (384, 0), (128, 48), "scrap", 24, 42))
 
+        # Enemy hud elements
+        self._enemy_hud_surface = pg.Surface((self.resolution[0] - (1-ratio), 128), pg.SRCALPHA)
+        self._enemy_hud_font = get_font("arial", 16)
+        self._enemy_hull_label = self._enemy_hud_font.render("HULL", True, (255,255,255))
+        self._enemy_shields_label = self._enemy_hud_font.render("SHIELDS", True, (255,255,255))
+
     def _draw_power(self) -> None:
         """Draws power bar interface on screen."""
-        
-        color_on = (106, 190, 48)
-        color_off = (132, 126, 135)
-
         curr_power = self._player_power_max - self._player_power_current
 
         # draw ship's power bar
         coords = (16, self.resolution[1]-32)
         for i in range(0, self._player_power_max):
             if i < curr_power: # draw full bar
-                pg.draw.rect(self.surface, color_on, (coords[0], coords[1] - i * 20, 32, 16))
+                pg.draw.rect(self.surface, self._power_color_on, (coords[0], coords[1] - i * 20, 32, 16))
             else: # draw empty bar
-                pg.draw.rect(self.surface, color_off, (coords[0], coords[1] - i * 20, 32, 16), 2)
+                pg.draw.rect(self.surface, self._power_color_off, (coords[0], coords[1] - i * 20, 32, 16), 2)
 
         # draw every system's power bar
         for index, system_name in enumerate(self._player.installed_systems):
@@ -128,9 +133,9 @@ class InterfaceController(pg.sprite.Group):
 
             for power_level in range(0, system.max_power):
                 if  power_level < system_power: # draw full bar
-                    pg.draw.rect(self.surface, color_on, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16))
+                    pg.draw.rect(self.surface, self._power_color_on, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16))
                 else: # draw empty bar
-                    pg.draw.rect(self.surface, color_off, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16), 2)
+                    pg.draw.rect(self.surface, self._power_color_off, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16), 2)
         return
     
     def _draw_weapons(self) -> None:
@@ -248,8 +253,32 @@ class InterfaceController(pg.sprite.Group):
         Draw the enemy interface to the provided surface.
         :param screen: pg.surface.Surface - the surface to draw the enemy interface on
         """
-        
+        self._enemy_hud_surface = pg.Surface((self.resolution[0] * (1-self.ratio), 128), pg.SRCALPHA)
+        if self.enemy is None:
+            return
+
+        coords = [32,32]
+        self._enemy_hud_surface.blit(self._enemy_hull_label, coords)
+        coords[1] += self._enemy_hull_label.get_height() + 16
+        for i in range(self.enemy.hull_hp):
+            pg.draw.rect(self._enemy_hud_surface, self._power_color_on, (coords[0] + i*12, coords[1], 8, 16))
+        coords[1] += 32
+        self._enemy_hud_surface.blit(self._enemy_shields_label, coords)
+
+        # TODO: draw shields icons for enemy shields
+
+        screen.blit(self._enemy_hud_surface, (0,0))
+
         return
+
+    def dev_draw_ui_areas(self, screen: pg.Surface) -> None:
+        self._wbar_surface.fill((255,0,0))
+        self.surface.blit(self._wbar_surface, self._wbar_coords)
+        self._status_surface.fill((255,0,0))
+        self.surface.blit(self._status_surface, self._status_bar_coords)
+        self._enemy_hud_surface.fill((255,0,0))
+        screen.blit(self._enemy_shields_label, (self.resolution[0] * self.ratio, 0))
+        screen.blit(self.surface, (0,0))
 
     @property
     def __weapons(self) -> list[Weapon]:
