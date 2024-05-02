@@ -71,6 +71,7 @@ class Display:
             self.player.selected_weapon.target = room
 
             if room is not None: # a room was found at cursor position
+                room.targeted = True
                 self.player.selected_weapon = None
 
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:

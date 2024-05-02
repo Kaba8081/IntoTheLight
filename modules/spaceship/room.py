@@ -42,6 +42,7 @@ class Room(pg.sprite.Group):
 
         # enemy ship
         self.aimed_at = False
+        self.targeted = False
 
         for x, collumn in enumerate(self.room_layout):
             for y, tile in enumerate(collumn):
@@ -109,6 +110,7 @@ class Room(pg.sprite.Group):
             s = pg.Surface((self.rect.width, self.rect.height), pg.SRCALPHA) 
             s.fill((0,0,0,128))
             screen.blit(s, self.rect)
+
         elif self.hovering:
             s = pg.Surface((self.rect.width, self.rect.height), pg.SRCALPHA) 
             s.fill((0,0,0,64)) 
@@ -119,6 +121,10 @@ class Room(pg.sprite.Group):
             pg.draw.rect(screen, (255,0,0,255), self.rect.inflate(-4, -4), 1)
             pg.draw.rect(screen, (255,0,0,150), self.rect.inflate(-8, -8), 1)
             pg.draw.rect(screen, (255,0,0,75), self.rect.inflate(-10, -10), 1)
+        
+        if self.targeted:
+            pg.draw.rect(screen, (125,0,0,255), self.rect.inflate(-4, -4), 1)
+            pg.draw.rect(screen, (125,0,0,150), self.rect.inflate(-8, -8), 1)
 
     def move_by_distance(self, distance: tuple[int, int]) -> None:
         self.rect.x += distance[0]

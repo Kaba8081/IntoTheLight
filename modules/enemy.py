@@ -21,12 +21,11 @@ class Enemy(Spaceship):
         """
 
         for room in self.rooms:
+            room.aimed_at = False
             if room.hitbox.collidepoint(mouse_pos):
-                #room.aimed_at = False
                 # TODO: Add an icon to show that the room is being targeted
                 return room
         
-        room.aimed_at = False
         return None
 
 
@@ -36,9 +35,8 @@ class Enemy(Spaceship):
         """
 
         for room in self.rooms:
+            room.aimed_at = False
             if room.hitbox.collidepoint(mouse_pos):
                 room.aimed_at = True
-            else:
-                room.aimed_at = False
         
         return

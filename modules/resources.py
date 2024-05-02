@@ -208,6 +208,7 @@ ship_layouts = {
         ]
     }
 }
+
 textures = {
     # ship parts
     "door":{
@@ -285,9 +286,30 @@ systems = [
     "bridge", 
     "shields"
 ]
+
 weapons = {
     "laser_mk1": {
         "name": "Laser MK1",
         "req_power": 1
+    }
+}
+
+button_palletes = {
+    "default": {
+        "background":{
+            "normal": (200,200,200),
+            "hover": (200,200,200),
+            "clicked": (150,150,150)
+        },
+        "border":{
+            "normal": (255,255,255),
+            "hover": (200,200,200),
+            "clicked": (150,150,150)
+        },
+        "label":{
+            "normal": (0,0,0),
+            "hover": (0,0,0),
+            "clicked": (0,0,0)
+        }
     }
 }

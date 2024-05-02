@@ -109,6 +109,10 @@ class Spaceship:
                     (self.screen_size[0]+100, 
                      self.screen_size[1]//2 + randint(-25,25)),
                     weapon.target)
+                if hasattr(self, "autofire") and not self.autofire:
+                    weapon.target.targeted = False
+                    weapon.target = None
+
             weapon.update(dt)
         
         for projectile in self.projectiles:

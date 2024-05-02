@@ -1,10 +1,10 @@
 import pygame as pg
-from typing import Literal
+from typing import Literal, Union
 
 from modules.player import Player
 from modules.spaceship.room import Room
 from modules.spaceship.upgrades import Weapon
-from modules.resources import textures, get_font
+from modules.resources import textures, get_font, button_palletes
 
 class InterfaceController(pg.sprite.Group):
     def __init__(self, resolution: tuple[int,int], player: Player) -> None:
@@ -40,6 +40,18 @@ class InterfaceController(pg.sprite.Group):
         coords[0] += 72
         coords[1] -= self._wbar_height
         self._wbar_coords = coords
+
+        self._autofire_button = Button(
+            self._player, 
+            "AUTOFIRE", 
+            (0, 0), 
+            offset=(self._wbar_coords[0], self._wbar_coords[1]), 
+            padding=(32, 14),
+            border_width=2,
+            color_palette="default", 
+            font_size=18,
+            toggle_func=print("latwo"))
+        self._autofire_button.update_pos((self._wbar_width - self._autofire_button.rect.width + self._wbar_gap, 48 - self._autofire_button.rect.height))
 
         self._weapons = []
         self._weapon_icons = []
@@ -120,6 +132,8 @@ class InterfaceController(pg.sprite.Group):
         """Draws the weapons interface on the screen"""
         
         self._wbar_surface.fill((0,0,0))
+        self._autofire_button.draw(self._wbar_surface)
+
         for w_icon in self._weapon_icons:
             w_icon.draw(self._wbar_surface)
 
@@ -180,6 +194,8 @@ class InterfaceController(pg.sprite.Group):
             else:
                 wicon.toggle(False)
 
+        self._autofire_button.check_clicked(mouse_pos, mouse_clicked)
+
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:
         """
         Check if the mouse is hovering over any of the interface elements.
@@ -188,6 +204,8 @@ class InterfaceController(pg.sprite.Group):
 
         for wicon in self._weapon_icons:
             wicon.hovering = True if wicon.hitbox.collidepoint(mouse_pos) else False
+
+        self._autofire_button.check_hover(mouse_pos)
 
     def update(self) -> None:
         """
@@ -270,7 +288,7 @@ class PowerIcon(pg.sprite.Sprite):
 class WeaponIcon():
     _colors = {
         "disabled": (135, 135, 135),
-        "charging": (50,50,50),
+        "charging": (230,230,230),
         "ready": (135, 247, 104),
         "hovering": (100, 100, 100),
         "ready_hovering": (94, 186, 69),
@@ -323,18 +341,20 @@ class WeaponIcon():
             self.selected = False 
         
         if mouse_clicked[0]:
-            if self.state == "ready":
+            if self.state == "ready" or self.state == "charging":
                 self._player.selected_weapon = self._weapon
                 self.selected = True
-            else: # try to activate the weapon
+            elif self._weapon.state == "disabled": # try to activate the weapon
                 if self._player.activate_weapon(self._weapon):
                     self.state = "charging"
                 else:
                     self.not_enough_power()
-                    self.state = "disabled"
         elif mouse_clicked[2] and self.state in ["charging", "ready", "selected"]:
             self._player.selected_weapon = None
             self._player.toggle_system_power(("weapons", False), self._weapon.req_power)
+            if self._weapon.target is not None:
+                self._weapon.target.targeted = False
+                self._weapon.target = None
             self._weapon.disable()
             self.state = "disabled"
     
@@ -414,3 +434,80 @@ class ResourceIcon():
         screen.blit(label, label_center)
 
         return
+    
+class Button():
+    def __init__(self,
+                 player: Player,
+                 label: str,
+                 pos: tuple[int, int],
+                 offset: tuple[int, int] = (0,0),
+                 padding: Union[int, tuple[int,int]] = 32,
+                 border_width: int = 0,
+                 border_radius: int = 5,
+                 color_palette: str = "default",
+                 font_size: int = 16,
+                 font: str = "arial",
+                 toggle_func: callable = None
+                 ) -> None:
+        """
+        :param player: Player - the player object
+        :param label: str - the text displayed on the button
+        :param pos: tuple[int, int] - the position of the button
+        :param offset: tuple[int, int] - the offset of the label from the button's position
+        :param padding: int - the padding around the label
+        :param border_width: int - the width of the border (0 = no border)
+        :param color_palette: str - the color palette of the button
+        :param font_size: int - the font size of the label
+        :param font: str - the font of the label
+        """
+
+        self._player = player
+        self._color_palette = button_palletes[color_palette]
+        self._font = get_font(font, font_size)
+        self._border_width = border_width
+        self._border_radius = border_radius
+
+
+        self.pos = pos
+        self.text = label
+        self.state = "normal"
+        if toggle_func is not None:
+            self.toggle = toggle_func
+
+        temp_label = self._font.render(self.text, True, self._color_palette["label"][self.state])
+        temp_label_size = temp_label.get_size()
+        size = (temp_label_size[0] + padding[0] + border_width, temp_label_size[1] + padding[1] + border_width)
+        
+        self.rect = pg.Rect(pos, size)
+        self.hitbox = pg.Rect((pos[0] + offset[0], pos[1] + offset[1]), size)
+
+        return
+    
+    def update_pos(self, offset: tuple[int, int]) -> None:
+        self.rect.x += offset[0]
+        self.rect.y += offset[1]
+        self.hitbox.x += offset[0]
+        self.hitbox.y += offset[1]
+
+    def draw(self, screen: pg.surface.Surface) -> None:
+        pg.draw.rect(screen, self._color_palette["background"][self.state], self.rect, 0, self._border_radius)
+        pg.draw.rect(screen, self._color_palette["border"][self.state], self.rect, self._border_width, self._border_radius)
+
+        label = self._font.render(self.text, True, self._color_palette["label"][self.state])
+        label_center = (self.rect.centerx - label.get_width() // 2, self.rect.centery - label.get_height() // 2)
+
+        screen.blit(label, label_center)
+
+        return
+    
+    def check_hover(self, mouse_pos: tuple[int, int]) -> None:
+        if self.hitbox.collidepoint(mouse_pos):
+            self.state = "hover"
+        else:
+            self.state = "normal"
+    
+    def check_clicked(self, mouse_pos: tuple[int,int], mouse_clicked: tuple[int, int, int]) -> None:
+        if self.hitbox.collidepoint(mouse_pos) and mouse_clicked[0]:
+            self.state = "clicked"
+            if hasattr(self, "toggle"):
+                self.toggle()

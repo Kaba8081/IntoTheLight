@@ -22,6 +22,7 @@ class Player(Spaceship):
 
         # weapon logic
         self.selected_weapon = None
+        self.autofire = False
 
         super().__init__(ship_type, screen_size)
     
