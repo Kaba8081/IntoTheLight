@@ -1,28 +1,32 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union
 import pygame as pg
 
-from modules.spaceship.spaceship import Spaceship
+if TYPE_CHECKING:
+    from modules.spaceship.spaceship import Spaceship
 from modules.player import Player
 from modules.enemy import Enemy
+
 from modules.ui import InterfaceController
 
 class Display:
     def __init__(self, 
                  screen: pg.Surface, 
                  resolution: tuple[int, int],
-                 ratio: float = 0.5, # player side / enemy side ratio
+                 ratio: float = 0.65, # player side / enemy side ratio
                  *args,
                  ) -> None:
         
         for arg in args:
-            if isinstance(arg, Player):
-                self.player = arg
-            elif isinstance(arg, Enemy):
-                self.enemy = arg
+            if type(arg) is Player:
+                self._player = arg
+            elif type(arg) is Enemy:
+                self.enemy_ship = arg
 
         if not hasattr(self, "player"):
             print("Player was not passed to display class!")
 
-        self._interface = InterfaceController(resolution, args[0])
+        self._interface = InterfaceController(resolution, self._player, ratio=ratio, enemy=self.enemy_ship)
         self._screen = screen
         self.ratio = ratio
 
@@ -34,28 +38,9 @@ class Display:
             self._screen.get_height(),
             self._screen.get_width() * (1-self.ratio)
             ))
-
-        player_center = self.player.get_center()
-        new_player_center = (
-            (self._screen.get_width() * self.ratio) / 2,
-            (self._screen.get_height()) / 2
-            )
-        self.player.move_by_distance((
-            new_player_center[0] - player_center[0],
-            new_player_center[1] - player_center[1]
-            ))
-        self.player.place_doors()
-
-        enemy_center = self.enemy.get_center()
-        new_enemy_center = (
-            (self._screen.get_height()) / 2,
-            (self._screen.get_width() * (1-self.ratio)) / 2
-            )
-        self.enemy.move_by_distance((
-            new_enemy_center[0] - enemy_center[0],
-            new_enemy_center[1] - enemy_center[1],
-            ))
-        self.enemy.place_doors()
+        
+        self.place_ship(self._player, ratio=self.ratio)
+        self.place_ship(self.enemy_ship, ratio=self.ratio, enemy=True)
 
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
         """
@@ -66,13 +51,13 @@ class Display:
 
         self._interface.mouse_clicked(mouse_pos, mouse_clicked)
 
-        if hasattr(self, "enemy") and self.player.selected_weapon is not None:
-            room = self.enemy.select_room(mouse_pos, mouse_clicked)
-            self.player.selected_weapon.target = room
+        if self.enemy_ship is not None and self._player.selected_weapon is not None:
+            room = self.enemy_ship.select_room(mouse_pos, mouse_clicked)
+            self._player.selected_weapon.target = room
 
             if room is not None: # a room was found at cursor position
                 room.targeted = True
-                self.player.selected_weapon = None
+                self._player.selected_weapon = None
 
     def check_mouse_hover(self, mouse_pos: tuple[int, int]) -> None:
         """
@@ -82,8 +67,8 @@ class Display:
 
         self._interface.check_mouse_hover(mouse_pos)
         
-        if hasattr(self, "enemy") and self.player.selected_weapon is not None:
-            self.enemy.hover_weapon(mouse_pos)
+        if self.enemy_ship is not None and self._player.selected_weapon is not None:
+            self.enemy_ship.hover_weapon(mouse_pos)
 
     def update(self) -> None:
         """
@@ -94,11 +79,11 @@ class Display:
             self._screen.get_width() * (1-self.ratio)
             ))
         
-        self.player.draw(self._player_screen)
-        self.enemy.draw(self._enemy_screen)
+        self._player.draw(self._player_screen)
+        self.enemy_ship.draw(self._enemy_screen)
 
-        self.player.draw_projectiles(self._player_screen, self._enemy_screen)
-        self.enemy.draw_projectiles(self._enemy_screen, self._player_screen)
+        self._player.draw_projectiles(self._player_screen, self._enemy_screen)
+        self.enemy_ship.draw_projectiles(self._enemy_screen, self._player_screen)
 
         self._interface.update()
         self._enemy_screen = pg.transform.rotate(self._enemy_screen,90)
@@ -120,3 +105,33 @@ class Display:
         self._interface.draw(self._screen)
         self._player_screen.fill((0,0,0))
         self._enemy_screen.fill((0,0,0))
+
+    def place_ship(self, ship: Spaceship, ratio: float = 0.65, enemy: bool = False) -> None:
+        ship_center = ship.get_center()
+        new_center = (0,0)
+        if enemy:
+            new_center = (
+            (self._screen.get_height()) / 2,
+            (self._screen.get_width() * (1-self.ratio)) / 2
+            )
+        else:
+            new_center = (
+            (self._screen.get_width() * self.ratio) / 2,
+            (self._screen.get_height()) / 2
+            )
+        ship.move_by_distance((
+            new_center[0] - ship_center[0],
+            new_center[1] - ship_center[1]
+            ))
+        ship.place_doors()
+
+    @property
+    def enemy_ship(self) -> Union[Enemy, None]:
+        return self._enemy
+    
+    @enemy_ship.setter
+    def enemy_ship(self, value: Union[Enemy, None]) -> None: #TODO: change User Interface if enemy is changed
+        if value == None:
+            pass
+        else:
+            self._enemy = value

@@ -167,7 +167,12 @@ class Weapon(UpgradeSlot):
         Set the target of the weapon.
         :param room: Room - the target room
         """
-        self._target = room
+        if room is not None:
+            self._target = room
+            self._target.targeted_by.append(self)
+        else:
+            self._target.targeted_by.remove(self) if self._target is not None else None
+            self._target = None
 
 class Thruster(UpgradeSlot):
     def __init__(self, 

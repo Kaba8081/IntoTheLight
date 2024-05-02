@@ -70,6 +70,11 @@ class Player(Spaceship):
         
         return
     
+    def toggle_autofire(self) -> bool:
+        """Toggles the autofire state of the player's weapons."""
+        self.autofire = not self.autofire
+        return self.autofire
+
     def toggle_system_power(self, action: tuple[str, bool], value: int = 1) -> None:
         """ 
         Toggles the power level of a system. 

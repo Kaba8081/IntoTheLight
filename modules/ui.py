@@ -1,17 +1,22 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Literal, Union
 import pygame as pg
-from typing import Literal, Union
 
+if TYPE_CHECKING:
+    from modules.enemy import Enemy
+    from modules.spaceship.upgrades import Weapon
 from modules.player import Player
 from modules.spaceship.room import Room
-from modules.spaceship.upgrades import Weapon
 from modules.resources import textures, get_font, button_palletes
 
 class InterfaceController(pg.sprite.Group):
-    def __init__(self, resolution: tuple[int,int], player: Player) -> None:
+    def __init__(self, resolution: tuple[int,int], player: Player, ratio: float = .65, enemy: Enemy = None) -> None:
         pg.sprite.Group.__init__(self)
         self.surface = pg.Surface(resolution, pg.SRCALPHA)
         self.resolution = resolution
+        self.ratio = ratio
         self._player = player
+        self.enemy = None
 
         # Power bar
         self._installed_systems_icon_bar = pg.sprite.Group()
@@ -48,9 +53,9 @@ class InterfaceController(pg.sprite.Group):
             offset=(self._wbar_coords[0], self._wbar_coords[1]), 
             padding=(32, 14),
             border_width=2,
-            color_palette="default", 
+            color_palette="autoaim", 
             font_size=18,
-            toggle_func=print("latwo"))
+            toggle_func=self._player.toggle_autofire)
         self._autofire_button.update_pos((self._wbar_width - self._autofire_button.rect.width + self._wbar_gap, 48 - self._autofire_button.rect.height))
 
         self._weapons = []
@@ -238,6 +243,14 @@ class InterfaceController(pg.sprite.Group):
         
         screen.blit(self.surface, (0,0))
 
+    def draw_enemy_interface(self, screen: pg.surface.Surface) -> None:
+        """
+        Draw the enemy interface to the provided surface.
+        :param screen: pg.surface.Surface - the surface to draw the enemy interface on
+        """
+        
+        return
+
     @property
     def __weapons(self) -> list[Weapon]:
         return self._weapons
@@ -344,6 +357,8 @@ class WeaponIcon():
             if self.state == "ready" or self.state == "charging":
                 self._player.selected_weapon = self._weapon
                 self.selected = True
+                if self._weapon.target is not None:
+                    self._weapon.target = None
             elif self._weapon.state == "disabled": # try to activate the weapon
                 if self._player.activate_weapon(self._weapon):
                     self.state = "charging"
@@ -353,7 +368,6 @@ class WeaponIcon():
             self._player.selected_weapon = None
             self._player.toggle_system_power(("weapons", False), self._weapon.req_power)
             if self._weapon.target is not None:
-                self._weapon.target.targeted = False
                 self._weapon.target = None
             self._weapon.disable()
             self.state = "disabled"
@@ -364,15 +378,6 @@ class WeaponIcon():
         # TODO: implement this
 
         return
-    
-class HealthIcon():
-    def __init__(self, player: Player, pos: tuple[int, int], size: tuple[int, int]) -> None:
-        self._player = player
-
-        self.pos = pos
-        self.rect = pg.Rect(pos, size)
-
-        return 
 
 class ResourceIcon():
     def __init__(self, 
@@ -471,6 +476,8 @@ class Button():
         self.pos = pos
         self.text = label
         self.state = "normal"
+        self.hovering = False
+
         if toggle_func is not None:
             self.toggle = toggle_func
 
@@ -490,10 +497,11 @@ class Button():
         self.hitbox.y += offset[1]
 
     def draw(self, screen: pg.surface.Surface) -> None:
-        pg.draw.rect(screen, self._color_palette["background"][self.state], self.rect, 0, self._border_radius)
-        pg.draw.rect(screen, self._color_palette["border"][self.state], self.rect, self._border_width, self._border_radius)
+        state = f"{self.state}_hover" if self.hovering else self.state
+        pg.draw.rect(screen, self._color_palette["background"][state], self.rect, 0, self._border_radius)
+        pg.draw.rect(screen, self._color_palette["border"][state], self.rect, self._border_width, self._border_radius)
 
-        label = self._font.render(self.text, True, self._color_palette["label"][self.state])
+        label = self._font.render(self.text, True, self._color_palette["label"][state])
         label_center = (self.rect.centerx - label.get_width() // 2, self.rect.centery - label.get_height() // 2)
 
         screen.blit(label, label_center)
@@ -501,13 +509,9 @@ class Button():
         return
     
     def check_hover(self, mouse_pos: tuple[int, int]) -> None:
-        if self.hitbox.collidepoint(mouse_pos):
-            self.state = "hover"
-        else:
-            self.state = "normal"
+        self.hovering = True if self.hitbox.collidepoint(mouse_pos) else False
     
     def check_clicked(self, mouse_pos: tuple[int,int], mouse_clicked: tuple[int, int, int]) -> None:
         if self.hitbox.collidepoint(mouse_pos) and mouse_clicked[0]:
-            self.state = "clicked"
             if hasattr(self, "toggle"):
-                self.toggle()
+                self.state = "clicked" if self.toggle() else "normal"

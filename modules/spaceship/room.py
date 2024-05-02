@@ -42,7 +42,7 @@ class Room(pg.sprite.Group):
 
         # enemy ship
         self.aimed_at = False
-        self.targeted = False
+        self.targeted_by = []
 
         for x, collumn in enumerate(self.room_layout):
             for y, tile in enumerate(collumn):
@@ -122,7 +122,7 @@ class Room(pg.sprite.Group):
             pg.draw.rect(screen, (255,0,0,150), self.rect.inflate(-8, -8), 1)
             pg.draw.rect(screen, (255,0,0,75), self.rect.inflate(-10, -10), 1)
         
-        if self.targeted:
+        if len(self.targeted_by) > 0:
             pg.draw.rect(screen, (125,0,0,255), self.rect.inflate(-4, -4), 1)
             pg.draw.rect(screen, (125,0,0,150), self.rect.inflate(-8, -8), 1)
 

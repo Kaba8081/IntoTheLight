@@ -31,6 +31,24 @@ def load_texture(name: str, new_size: tuple[int,int]=None, extension: str=".png"
         texture = pg.transform.scale(texture, new_size)
     return texture
 
+def autocomplete_configs(config: dict, config_str: str) -> dict:
+    """Autocomplete the config with the missing values."""
+
+    match config_str:
+        case "button_palletes":
+            for pallete_id in button_palletes.keys():
+                for category in button_palletes[pallete_id].keys():
+                    states = button_palletes[pallete_id][category].keys()
+                    
+                    if "normal" not in states:
+                        button_palletes[pallete_id][category]["normal"] = (0,0,0)
+                    if "normal_hover" not in states:
+                        button_palletes[pallete_id][category]["normal_hover"] = button_palletes[pallete_id][category]["normal"]
+                    if "clicked" not in states:
+                        button_palletes[pallete_id][category]["clicked"] = (0,0,0)
+                    if "clicked_hover" not in states:
+                        button_palletes[pallete_id][category]["clicked_hover"] = button_palletes[pallete_id][category]["clicked"]
+
 CONFIG = load_config()
 
 keybinds = {
@@ -298,18 +316,37 @@ button_palletes = {
     "default": {
         "background":{
             "normal": (200,200,200),
-            "hover": (200,200,200),
-            "clicked": (150,150,150)
+            "normal_hover": (150,150,150),
+            "clicked": (150, 150, 150),
+            "clicked_hover": (120, 120, 120)
         },
         "border":{
             "normal": (255,255,255),
-            "hover": (200,200,200),
+            "normal_hover": (200,200,200),
             "clicked": (150,150,150)
         },
         "label":{
-            "normal": (0,0,0),
-            "hover": (0,0,0),
-            "clicked": (0,0,0)
+            "normal": (0,0,0)
         }
+    },
+    "autoaim":{
+        "background":{
+            "normal": (200,200,200),
+            "normal_hover": (150,150,150),
+            "clicked": (252, 209, 91),
+            "clicked_hover": (199, 158, 44)
+        },
+        "border":{
+            "normal": (255,255,255),
+            "normal_hover": (50,50,50),
+            "clicked": (150,150,150),
+            "clicked_hover": (120,120,120),
+        },
+        "label":{
+            "normal": (0,0,0)
+        }
+        
     }
 }
+
+autocomplete_configs(button_palletes, "button_palletes")
