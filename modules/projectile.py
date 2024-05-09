@@ -7,6 +7,24 @@ if TYPE_CHECKING:
     from modules.spaceship.room import Room
 
 class Projectile():
+    # public
+    type: Literal["laser", "missile", "beam"]
+    damage: int
+    speed: float
+    color: tuple[int,int,int]
+    length: int
+    width: int
+    delay: float
+    hit_target: bool
+    switched_screens: bool # determines if the projectile is on the enemy screen
+    target_pos: tuple[int,int]
+    future_pos: tuple[int,int]
+
+    # private
+    _target_room: Room
+    _vector2d_start: pg.math.Vector2
+    _vector2d_end: pg.math.Vector2
+
     def __init__(self, 
                  start_pos: tuple[int,int],
                  first_pos: tuple[int, int],
@@ -50,6 +68,8 @@ class Projectile():
             self._vector2d_end.move_towards_ip(self.target_pos, self.speed * dt)
         else:
             self.delay -= dt
+
+        # TODO: Check for enemy shields using self._target_room.parent
 
         if self._vector2d_start == self.target_pos:
             self._target_room.take_damage(self)

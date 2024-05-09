@@ -1,14 +1,27 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union
 import pygame as pg
-from typing import Union
+
+if TYPE_CHECKING:
+    from modules.spaceship.door import Door
+    from modules.spaceship.room import Room
+    from modules.spaceship.upgrades import *
 
 from modules.spaceship.spaceship import Spaceship
-from modules.spaceship.upgrades import UpgradeSlot, Weapon, Thruster
-from modules.spaceship.room import Room
 from modules.resources import keybinds
 
 class Player(Spaceship):
-    enemy = False
+    # public
+    enemy: bool
+    fuel: int
+    missles: int
+    drone_parts: int
+    scrap: int
+    selected_weapon: Union[Weapon, None]
+    autofire: bool
 
+    enemy = False
+    
     def __init__(self, 
                  ship_type: str = "scout",
                  screen_size: tuple[int, int] = (800, 600)
@@ -36,6 +49,7 @@ class Player(Spaceship):
         super().update(dt)
 
         # check if the player clicked / is hovering on a door
+        door: Door
         for door in self.doors:
             if door.rect.collidepoint(mouse_pos):
                 door.hovering = True

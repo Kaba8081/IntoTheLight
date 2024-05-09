@@ -3,6 +3,16 @@ import pygame as pg
 from modules.resources import textures
 
 class Door(pg.sprite.Sprite):
+    # public
+    opened: bool
+    rect: pg.Rect
+    image: pg.Surface
+
+    # private
+    _txt_set: dict[str, pg.Surface]
+    _txt_open: pg.Surface
+    _txt_closed: pg.Surface
+
     def __init__(self, 
                  pos: tuple, 
                  sprite_group: pg.sprite.Group,
@@ -10,10 +20,10 @@ class Door(pg.sprite.Sprite):
                  ) -> None:
         pg.sprite.Sprite.__init__(self, sprite_group)
 
-        self.txt_set = textures["door"]
-        self.txt_closed = pg.transform.rotate(self.txt_set["closed"],90) if vertical else self.txt_set["closed"]
-        self.txt_open = pg.transform.rotate(self.txt_set["open"],90) if vertical else self.txt_set["open"]
-        self.image = self.txt_closed
+        self._txt_set = textures["door"]
+        self._txt_closed = pg.transform.rotate(self._txt_set["closed"],90) if vertical else self._txt_set["closed"]
+        self._txt_open = pg.transform.rotate(self._txt_set["open"],90) if vertical else self._txt_set["open"]
+        self.image = self._txt_closed
         self.rect = self.image.get_rect()
 
         self.rect.centerx = pos[0]
@@ -29,6 +39,6 @@ class Door(pg.sprite.Sprite):
         self.opened = not self.opened
         
         if self.opened:
-            self.image = self.txt_open
+            self._image = self._txt_open
         else:
-            self.image = self.txt_closed
+            self._image = self._txt_closed

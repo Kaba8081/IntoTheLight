@@ -4,16 +4,41 @@ import pygame as pg
 
 if TYPE_CHECKING:
     from modules.spaceship.room import Projectile
+    from modules.spaceship.spaceship import Spaceship
 
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
 from modules.resources import textures
 
 class Room(pg.sprite.Group):
+    # public
+    rect: pg.Rect
+    hitbox: pg.Rect
+
+    pos: tuple[int, int]
+    room_layout: list[dict]
+    adjecent_rooms: dict[Room, list[tuple[int, int]]]
+    parent: Spaceship
+    role: Union[str, None]
+    level: int
+    icon: Union[pg.Surface, None]
+
+    selected: bool
+    hovering: bool
+
+    aimed_at: bool
+    targeted_by: list[Weapon]
+
+    # private
+    _upgrade_index: int
+    _enemy_ship: bool
+    _power: int 
+
     def __init__(self, 
                  pos: tuple[int, int],
                  realpos: tuple[int, int],
-                 room_layout: list,
+                 room_layout: list[dict],
+                 parent: Spaceship,
                  upgrade_slots: dict[str, str] = {},
                  role: str = None,
                  level: int = None,
@@ -31,8 +56,9 @@ class Room(pg.sprite.Group):
     
         self.pos = pos
         self.room_layout = room_layout
-        self.adjecent_rooms = {} # room class : connected tiles
+        self.adjecent_rooms = {}
         self.upgrade_slots = {}
+        self.parent = parent
         self._upgrade_index = 0
         self._enemy_ship = enemy_ship
 
@@ -179,8 +205,7 @@ class Room(pg.sprite.Group):
         :param projectile: Projectile - the projectile that hit the room
         """
 
-        # TODO: implement damage taking
-        print("Room took damage!")
+        self.parent.hull_hp -= projectile.damage
 
         return
 

@@ -10,6 +10,18 @@ from modules.enemy import Enemy
 from modules.ui import InterfaceController
 
 class Display:
+    # public
+    ratio: float
+
+    # private
+    _interface: InterfaceController
+    _screen: pg.Surface
+    _player_screen: pg.Surface
+    _enemy_screen: pg.Surface
+
+    _player: Player
+    _enemy: Union[Enemy, None]
+
     def __init__(self, 
                  screen: pg.Surface, 
                  resolution: tuple[int, int],

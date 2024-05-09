@@ -9,6 +9,24 @@ from modules.spaceship.upgrades import *
 from modules.resources import ship_layouts, systems
 
 class Spaceship:
+    # public
+    screen_size: tuple[int, int]
+    doors: pg.sprite.Group
+    rooms: list[Room]
+    projectiles: list[Projectile]
+    installed_systems: dict[str, Room]
+    installed_weapons: dict[str, Weapon]
+    installed_thrusters: dict[str, Thruster]
+    hull_hp: int
+    destroyed: bool
+
+    # private
+    _room_enine: Union[Room, None]
+    _room_weapons: Union[Room, None]
+    _room_oxygen: Union[Room, None]
+    _room_bridge: Union[Room, None]
+
+
     def __init__(self, ship_type: str, screen_size: tuple[int, int], enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
         """
         :param ship_type: str - The type of the spaceship.
@@ -33,12 +51,14 @@ class Spaceship:
         self.installed_thrusters = {}
         
         self.hull_hp = 30
+        self.destroyed = False
 
         for room in ship_layouts[ship_type]["rooms"]:
             self.rooms.append(Room(
                 (room["pos"][0]*32, room["pos"][1]*32),
                 (room["pos"][0]*32 + offset[1], room["pos"][1]*32 + offset[0]),
                 room["tiles"],
+                self,
                 role=room["role"] if "role" in room else None,
                 level=room["level"] if "level" in room else 0,
                 upgrade_slots=room["upgrade_slots"] if "upgrade_slots" in room else {},
@@ -65,11 +85,11 @@ class Spaceship:
                     self._room_bridge.power = 1
         
         if enemy: # flip all the rooms hitboxes horizontally
-            self.centery = self.get_center()[0]
+            centery = self.get_center()[0]
 
             for room in self.rooms:
                 hitbox_y = room.hitbox.centery
-                room.hitbox.centery = self.centery - hitbox_y + self.centery
+                room.hitbox.centery = centery - hitbox_y + centery
 
     def draw(self, screen: pg.Surface, enemy_screen: pg.Surface = None) -> None:
         """
@@ -103,6 +123,10 @@ class Spaceship:
                 projectile.draw(screen)
 
     def update(self, dt: float) -> None:
+        if self.hull_hp <= 0:
+            self._anim_destroy()
+            return
+
         for weapon in self.weapons:
             if weapon.state == "ready" and bool(weapon) and weapon.target is not None:
                 self.projectiles += weapon.fire(
@@ -268,6 +292,22 @@ class Spaceship:
 
         for room in self.rooms:
             room.dev_draw_hitbox(screen)
+
+    def _anim_destroy(self) -> None: # TODO: implement destruction animation
+        if hasattr(self, "_destroy_anim_index"):
+            self._destroy_anim_index += 1
+        else: # initialize the animation and cleanup game elements
+            self.destroyed = True
+            self._destroy_anim_index = 0
+
+            print("The ship was destroyed!")
+
+            room: Room
+            for room in self.rooms:
+                for weapon in room.targeted_by:
+                    weapon.target = None
+
+        return
 
     @property
     def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:

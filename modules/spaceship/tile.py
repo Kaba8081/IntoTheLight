@@ -1,6 +1,11 @@
 import pygame as pg
 
 class Tile(pg.sprite.Sprite):
+    # public
+    pos: tuple[int,int]
+    rect: pg.Rect
+    image: pg.Surface
+
     def __init__(self, 
                  parent_pos: tuple, 
                  pos: tuple, 

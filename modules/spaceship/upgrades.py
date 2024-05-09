@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Union, Literal
 import pygame as pg
 
 if TYPE_CHECKING:
@@ -9,6 +9,13 @@ from modules.resources import textures, weapons
 from modules.projectile import Projectile
 
 class UpgradeSlot(pg.sprite.Sprite):
+    # public
+    purpose: Literal["weapon", "thruster", "shield"]
+    orientation: Literal["top", "right", "bottom", "left"]
+    image: pg.Surface
+    pos: tuple[int, int]
+    rect: pg.Rect
+
     def __init__(self, 
                  pos: tuple[int, int],
                  orientation: str,
@@ -56,6 +63,28 @@ class UpgradeSlot(pg.sprite.Sprite):
             self.image = pg.transform.rotate(texture, 90)
 
 class Weapon(UpgradeSlot):
+    # public
+    charge_speed: int
+    curr_charge: int
+    projectile_queue: list[Projectile]
+    state: Literal["disabled", "charging", "ready"]
+
+    weapon_name: str
+    display_name: str
+    req_power: int
+    charge_time: int
+    volley_shots: int
+    volley_delay: float
+    projectile_type: Literal["laser", "missile", "beam"]
+
+    # private
+    _txt_set: dict[str, dict[str, pg.Surface]]
+    _anim_idle: pg.Surface  
+    _anim_charge: list[pg.Surface]
+    _anim_ready: pg.Surface
+
+    _target: Union[Room, None]
+
     def __init__(self, 
                  pos: tuple[int, int], 
                  orientation: str,
@@ -100,7 +129,7 @@ class Weapon(UpgradeSlot):
         self.change_texture(self._anim_idle)
         self.state = "disabled"
 
-    def update(self, dt) -> None: # TODO: implement charge time
+    def update(self, dt) -> None:
         """
         Update the weapon's state and fire queued projectiles.
         """
@@ -177,6 +206,14 @@ class Weapon(UpgradeSlot):
             self._target = None
 
 class Thruster(UpgradeSlot):
+    # public
+    thruster_type: str
+
+    # private
+    _txt_set: dict[str, pg.Surface]
+    _anim_idle: pg.Surface
+    _anim_active: pg.Surface
+
     def __init__(self, 
                  pos: tuple[int, int], 
                  orientation: str,
@@ -185,11 +222,11 @@ class Thruster(UpgradeSlot):
                  ) -> None:
         
         self.thruster_type = thruster_type
-        self.txt_set = textures["thrusters"][thruster_type]
-        self.anim_idle = self.txt_set["idle"]
-        self.anim_active = self.txt_set["active"]
+        self._txt_set = textures["thrusters"][thruster_type]
+        self._anim_idle = self._txt_set["idle"]
+        self._anim_active = self._txt_set["active"]
 
-        UpgradeSlot.__init__(self, pos, orientation, self.anim_idle, sprite_group)
+        UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
 
 class Shield(UpgradeSlot):
     def __init__(self, 

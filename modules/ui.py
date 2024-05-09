@@ -10,8 +10,44 @@ from modules.spaceship.room import Room
 from modules.resources import textures, get_font, button_palletes
 
 class InterfaceController(pg.sprite.Group):
+    # public
+    surface: pg.Surface
+    resolution: tuple[int, int]
+    ratio: float
+
+    # private
+    _player: Player
+    _player_power_max: int
+    _player_power_current: int
+
+    _enemy: Enemy
+
     _power_color_on = (106, 190, 48)
     _power_color_off = (132, 126, 135)
+
+    _installed_systems_icon_bar: pg.sprite.Group
+    _wbar_surface: pg.Surface
+    _wbar_width: int
+    _wbar_height: int
+    _wbar_coords: tuple[int, int]
+    _wbar_module_size: int
+    _wbar_gap: int
+    _wbar_module_width: int
+    _wbar_module_height: int
+    _autofire_button: Button
+    _weapons: list[Weapon]
+    _weapon_icons: list[WeaponIcon]
+
+    _status_surface: pg.Surface
+    _status_bar_size: tuple[int, int]
+    _status_bar_coords: tuple[int, int]
+    _status_bar_ratio: float
+    _resource_icons: list[ResourceIcon]
+
+    _enemy_hud_surface: pg.Surface
+    _enemy_hud_font: pg.font.Font
+    _enemy_hull_label: pg.surface.Surface
+    _enemy_shields_label: pg.surface.Surface
 
     def __init__(self, resolution: tuple[int,int], player: Player, ratio: float = .65, enemy: Enemy = None) -> None:
         pg.sprite.Group.__init__(self)
@@ -19,7 +55,7 @@ class InterfaceController(pg.sprite.Group):
         self.resolution = resolution
         self.ratio = ratio
         self._player = player
-        self.enemy = None
+        self._enemy = enemy
 
         # Power bar
         self._installed_systems_icon_bar = pg.sprite.Group()
@@ -92,9 +128,9 @@ class InterfaceController(pg.sprite.Group):
         self._status_surface = pg.Surface(self._status_bar_size, pg.SRCALPHA)
 
         roles = ["fuel", "missile", "drone_parts"]
-        self.resources_icons = []
+        self._resource_icons = []
         for i in range(3):
-            self.resources_icons.append(
+            self._resource_icons.append(
                 ResourceIcon(
                     self._player,
                     (128 + 76 * i, 64),
@@ -102,7 +138,7 @@ class InterfaceController(pg.sprite.Group):
                     roles[i]
                     )
                 )
-        self.resources_icons.append(ResourceIcon(self._player, (384, 0), (128, 48), "scrap", 24, 42))
+        self._resource_icons.append(ResourceIcon(self._player, (384, 0), (128, 48), "scrap", 24, 42))
 
         # Enemy hud elements
         self._enemy_hud_surface = pg.Surface((self.resolution[0] - (1-ratio), 128), pg.SRCALPHA)
@@ -179,7 +215,7 @@ class InterfaceController(pg.sprite.Group):
             pg.draw.rect(self._status_surface, color_on, (i*12, 16, 8, 16))
         
         # draw resources
-        for icon in self.resources_icons:
+        for icon in self._resource_icons:
             icon.draw(self._status_surface)
 
         self.surface.blit(self._status_surface, self._status_bar_coords)
@@ -254,13 +290,13 @@ class InterfaceController(pg.sprite.Group):
         :param screen: pg.surface.Surface - the surface to draw the enemy interface on
         """
         self._enemy_hud_surface = pg.Surface((self.resolution[0] * (1-self.ratio), 128), pg.SRCALPHA)
-        if self.enemy is None:
+        if self._enemy is None:
             return
 
         coords = [32,32]
         self._enemy_hud_surface.blit(self._enemy_hull_label, coords)
         coords[1] += self._enemy_hull_label.get_height() + 16
-        for i in range(self.enemy.hull_hp):
+        for i in range(self._enemy.hull_hp):
             pg.draw.rect(self._enemy_hud_surface, self._power_color_on, (coords[0] + i*12, coords[1], 8, 16))
         coords[1] += 32
         self._enemy_hud_surface.blit(self._enemy_shields_label, coords)
@@ -289,6 +325,16 @@ class InterfaceController(pg.sprite.Group):
         self._weapons = weapon
 
 class PowerIcon(pg.sprite.Sprite):
+    # public
+    powered: bool
+    system_name: str
+    coords: tuple[int, int]
+    image: pg.surface.Surface
+    rect: pg.Rect
+
+    # private
+    _room_obj: Room
+
     def __init__(self, 
                  powered: bool,
                  system_name: str, room_obj: Room, 
@@ -328,6 +374,14 @@ class PowerIcon(pg.sprite.Sprite):
         return self.system_name
 
 class WeaponIcon():
+    # public
+    rect: pg.Rect
+    hitbox: pg.Rect
+    hovering: bool
+    selected: bool
+    state: str
+
+    # private
     _colors = {
         "disabled": (135, 135, 135),
         "charging": (230,230,230),
@@ -336,6 +390,10 @@ class WeaponIcon():
         "ready_hovering": (94, 186, 69),
         "selected": (247, 198, 74)
     }
+    _player: Player
+    _weapon: Weapon
+    _font: pg.font.Font
+    _label: pg.surface.Surface
 
     def __init__(self, player: Player, weapon: Weapon, pos: tuple[int, int], real_pos: tuple[int, int], size: tuple[int, int]) -> None:
         self._player = player
@@ -409,6 +467,19 @@ class WeaponIcon():
         return
 
 class ResourceIcon():
+    # public
+    role: str
+    pos: tuple[int, int]
+    rect: pg.Rect
+
+    # private
+    _color_normal = (255, 255, 255)
+    _color_low = (190, 75, 75)
+    _player: Player
+    _icon: pg.surface.Surface
+    _icon_rect: pg.Rect
+    _font: pg.font.Font
+
     def __init__(self, 
                  player: Player, 
                  pos: tuple[int, int], 
@@ -428,8 +499,6 @@ class ResourceIcon():
         self._icon = textures[f"{role}_icon"]
         self._icon = pg.transform.scale(self._icon, (icon_size, icon_size))
         self._icon_rect = self._icon.get_rect()
-        self._color_normal = (255, 255, 255)
-        self._color_low = (190, 75, 75)
         self._font = get_font("arial", font_size)
 
         self.role = role
