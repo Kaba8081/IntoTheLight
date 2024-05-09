@@ -82,6 +82,7 @@ class Weapon(UpgradeSlot):
         self.charge_time = weapons[weapon_id]["charge_time"]
         self.volley_shots = weapons[weapon_id]["volley_shots"]
         self.volley_delay = weapons[weapon_id]["volley_delay"]
+        self.projectile_type = weapons[weapon_id]["projectile_type"]
 
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
     
@@ -141,7 +142,7 @@ class Weapon(UpgradeSlot):
 
         for i in range(self.volley_shots):
             delay = self.volley_delay * i
-            projectile = Projectile(self.rect.center, first_pos, "laser", 1, 300, (255,0,0), 15, 3, delay, target_room)
+            projectile = Projectile(self.rect.center, first_pos, self.projectile_type, 1, 300, (255,0,0), 15, 3, delay, target_room)
             self.projectile_queue.append(projectile)
 
         return self.projectile_queue

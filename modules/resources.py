@@ -322,6 +322,7 @@ weapons = {
         "charge_time": 100,
         "volley_shots": 1,
         "volley_delay": 0.3,
+        "projectile_type": "laser"
     }, 
     "laser_mk2": {
         "name": "Laser MK2",
@@ -329,6 +330,7 @@ weapons = {
         "charge_time": 100,
         "volley_shots": 3,
         "volley_delay": 0.3,
+        "projectile_type": "laser"
     }
 }
 
