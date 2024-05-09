@@ -87,7 +87,7 @@ class Weapon(UpgradeSlot):
 
     def __init__(self, 
                  pos: tuple[int, int], 
-                 orientation: str,
+                 orientation: Literal["top", "right", "bottom", "left"],
                  weapon_id: str,
                  sprite_group: pg.sprite.Group
                  ) -> None:
@@ -229,8 +229,52 @@ class Thruster(UpgradeSlot):
         UpgradeSlot.__init__(self, pos, orientation, self._anim_idle, sprite_group)
 
 class Shield(UpgradeSlot):
+    # public
+    pos: tuple[int, int]
+    realpos: tuple[int, int]
+    shield_image: pg.Surface
+    rect: pg.Rect
+    hitbox: pg.Rect
+
+    # private
+
     def __init__(self, 
                  pos: tuple[int, int], 
-                 role: str,
+                 realpos: tuple[int, int],
+                 orientation: Literal["top", "right", "bottom", "left"],
+                 shield_id: str,
+                 sprite_group: pg.sprite.Group,
+                 ship_corners: tuple[tuple[int, int], tuple[int, int]],
                  ) -> None:
-        UpgradeSlot.__init__(self, pos, role)
+        """
+        :param pos: tuple[int, int] - the relative position of the upgrade slot
+        :param realpos: tuple[int, int] - the absolute position of the upgrade slot
+        :param role: str - the role of the upgrade slot
+        :param ship_corners: tuple[tuple[int, int], tuple[int, int]] - the corners of the ship (top-left, bottom-right)
+        """
+        UpgradeSlot.__init__(self, pos, orientation, textures["shield_upgrades"][shield_id], sprite_group)
+        
+        self.pos = pos
+        self.realpos = realpos
+
+    def post_init_update(self, ship_corners: tuple[tuple[int, int], tuple[int, int]], ship_center: tuple[int, int]) -> None:
+        """
+        Update the shield's position and hitbox.
+        :param ship_corners: tuple[tuple[int, int], tuple[int, int]] - the corners of the ship (top-left, bottom-right)
+        :param ship_center: tuple[int, int] - the center of the ship
+        """
+        
+        width = ship_corners[1][0] - ship_corners[0][0]
+        height = ship_corners[1][1] - ship_corners[0][1]
+        
+        self.shield_image = pg.Surface((width+144, height+144), flags=pg.SRCALPHA)
+        self.shield_rect = self.shield_image.get_rect()
+        self.shield_rect.center = ship_center
+        pg.draw.ellipse(self.shield_image, (108, 142, 196, 100), self.shield_image.get_rect())
+        self.hitbox = pg.Rect(self.realpos, (width, height))
+        
+    def draw(self, screen: pg.Surface) -> None:
+        if hasattr(self, "shield_image") and hasattr(self, "shield_rect"):
+            screen.blit(self.shield_image, self.shield_rect)
+        else:
+            print("shield_upgrade has no shield_image attribute!")

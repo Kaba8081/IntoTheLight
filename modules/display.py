@@ -135,6 +135,8 @@ class Display:
             new_center[1] - ship_center[1]
             ))
         ship.place_doors()
+        if ship.installed_shield is not None:
+            ship.installed_shield.post_init_update(ship.get_corners(), ship.get_center())
 
     @property
     def enemy_ship(self) -> Union[Enemy, None]:

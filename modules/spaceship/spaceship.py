@@ -17,6 +17,7 @@ class Spaceship:
     installed_systems: dict[str, Room]
     installed_weapons: dict[str, Weapon]
     installed_thrusters: dict[str, Thruster]
+    installed_shield: Union[Shield, None]
     hull_hp: int
     destroyed: bool
 
@@ -49,6 +50,7 @@ class Spaceship:
         self.installed_systems = {}
         self.installed_weapons = {}
         self.installed_thrusters = {}
+        self.installed_shield = None
         
         self.hull_hp = 30
         self.destroyed = False
@@ -102,6 +104,9 @@ class Spaceship:
             group.draw(screen)
 
         self.doors.draw(screen)
+
+        if self.installed_shield is not None:
+            self.installed_shield.draw(screen)
     
     def draw_projectiles(self, screen: pg.Surface, enemy_screen: pg.Surface) -> None:
         for projectile in self.projectiles:
@@ -146,10 +151,10 @@ class Spaceship:
             else:
                 projectile.update(dt)
 
-    def get_center(self) -> tuple[int, int]:
+    def get_corners(self) -> tuple[tuple[int, int], tuple[int, int]]:
         """
-        Return the center of the spaceship in pixels.
-        :return tuple[int, int] - The center of the spaceship.
+        Return the top left and bottom right corners of the spaceship in pixels.
+        :return tuple[tuple[int, int], tuple[int, int]] - The top left and bottom right corners of the spaceship.
         """
 
         lowest_x = None
@@ -171,8 +176,18 @@ class Spaceship:
                 highest_x = room.rect.right
             if highest_y is None or room.rect.bottom > highest_y:
                 highest_y = room.rect.bottom
+
+        return (lowest_x, lowest_y), (highest_x, highest_y)
+
+    def get_center(self) -> tuple[int, int]:
+        """
+        Return the center of the spaceship in pixels.
+        :return tuple[int, int] - The center of the spaceship.
+        """
+
+        lowest, highest = self.get_corners()
         
-        return ((highest_x + lowest_x)/2, (highest_y + lowest_y)/2)
+        return ((highest[0] + lowest[0])/2, (highest[1] + lowest[1])/2)
 
     def move_by_distance(self, distance: tuple[int, int]) -> None:
         """

@@ -192,6 +192,10 @@ class Room(pg.sprite.Group):
             self.upgrade_slots[self._upgrade_index] = Weapon(upgrade_pos, orientation, upgrade_name, self)
         elif upgrade_name in textures["thrusters"]:
             self.upgrade_slots[self._upgrade_index] = Thruster(upgrade_pos, orientation, upgrade_name, self)
+        elif upgrade_name in textures["shield_upgrades"]:
+            new_shield = Shield(upgrade_pos, (0,0), orientation, upgrade_name, self, self.parent.get_corners())
+            self.upgrade_slots[self._upgrade_index] = new_shield
+            self.parent.installed_shield = new_shield
         else: # invalid upgrade name
             self.upgrade_slots[self._upgrade_index] = UpgradeSlot(upgrade_pos, orientation, textures["upgrade_slot"], self, upgrade_type)
         

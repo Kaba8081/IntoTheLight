@@ -84,7 +84,7 @@ ship_layouts = {
             "role": "medbay",
             "upgrade_slots":{
                 "weapon": {"top":None},
-                "shield": {"right":None}
+                "shield": {"right":"shield_mk1"}
             }
         },
         {
@@ -280,6 +280,11 @@ textures = {
             "idle": load_texture("thruster_mk1_idle"),
             "active": load_texture("thruster_mk1_active")
         }
+    },
+
+    # shield upgrades
+    "shield_upgrades": {
+        "shield_mk1": load_texture("laser_mk1_off")
     },
 
     # ui elements
