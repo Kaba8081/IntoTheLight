@@ -74,6 +74,7 @@ ship_layouts = {
             "pos": (3, 1),
             "tiles": [[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
             "role": "weapons",
+            "level": 3,
             "upgrade_slots":{
                 "weapon": {"top": "laster_mk1"}
             }
@@ -82,21 +83,23 @@ ship_layouts = {
             "pos": (7, 1),
             "tiles": [[1,1,1],[1,1,1],[1,1,1],[1,1,1]],
             "role": "medbay",
+            "level": 1,
             "upgrade_slots":{
                 "weapon": {"top":None},
-                "shield": {"right":"shield_mk1"}
+                "shield": {"right":None}
             }
         },
         {
             "pos": (1, 2),
             "tiles": [[1,1],[1,1]],
-            "role": "o2"
+            "role": "o2",
+            "level": 1
         },
         {
             "pos": (0, 4),
             "tiles": [[1,1,1],[1,1,1],[1,1,1]],
             "role": "engines",
-            "level": 1,
+            "level": 2,
             "upgrade_slots":{
                 "thruster": {"left": "thruster_mk1"}
             }
@@ -111,12 +114,14 @@ ship_layouts = {
         {
             "pos": (7, 4),
             "tiles": [[1,1],[1,1],[1,1],[1,1]],
-            "role": "cameras"
+            "role": "cameras",
+            "level": 1,
         },
         {
             "pos": (11, 4),
             "tiles": [[1,1],[1,1],[1,1],[1,1]],
-            "role": "bridge"
+            "role": "bridge",
+            "level": 1
         }
         ]
     },
@@ -242,7 +247,7 @@ textures = {
     "o2": load_texture("oxygen",(24,24)),
     "cameras": load_texture("camera",(24,24)),
     "bridge": load_texture("bridge",(24,24)),
-    "shields": None,
+    "shields": load_texture("oxygen",(24,24)),
 
     # upgrade slots
     "upgrade_slot": load_texture("upgrade_slot"),

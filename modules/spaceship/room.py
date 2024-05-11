@@ -33,6 +33,12 @@ class Room(pg.sprite.Group):
     _upgrade_index: int
     _enemy_ship: bool
     _power: int 
+    _health: int
+
+    _icon_preset: pg.Surface
+    _icon_color_stable = (105, 106, 106)
+    _icon_color_damaged = (249,163,27)
+    _icon_color_destroyed = (180, 32, 42)
 
     def __init__(self, 
                  pos: tuple[int, int],
@@ -84,9 +90,11 @@ class Room(pg.sprite.Group):
         self.level = level if level is not None else 0
         self.icon = None
         if self.role is not None:
-            self.icon = textures[self.role]
-            self.icon = pg.transform.rotate(self.icon, 270) if enemy_ship else self.icon
+            self._icon_preset = textures[self.role]
+            self._icon_preset = pg.transform.rotate(self._icon_preset, 270) if enemy_ship else self._icon_preset
+            self.icon = self._icon_preset.__copy__()
             self._power = 0
+            self._health = self.max_power
 
     def update(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
         """
@@ -211,6 +219,10 @@ class Room(pg.sprite.Group):
 
         self.parent.hull_hp -= projectile.damage
 
+        # TODO: implement projectile type specific damage
+        if hasattr(self, "_health"):
+            self.health_points -= projectile.damage
+
         return
 
     def dev_draw_hitbox(self, screen: pg.surface.Surface) -> None:
@@ -271,7 +283,7 @@ class Room(pg.sprite.Group):
         except AttributeError:
             print("Could not return max_power: Room level or role has not been set!")
             return 0
-    
+
     @property
     def power(self) -> int:
         """Return the current power used in the room."""
@@ -296,5 +308,35 @@ class Room(pg.sprite.Group):
                 print(f"Could not set power: Power level is out of range! (role: {self.role}, {value}/{self.max_power})")
         else:
             print("Could not set power: Room is not a system room!")
+
+        return
+
+    @property
+    def health_points(self) -> Union[int, None]:
+        """Return the current health points of the room. (If the room is a system room, else return None)"""
+
+        if hasattr(self, "_health") and self.role is not None:
+            return self._health
+        return None
+    
+    @health_points.setter
+    def health_points(self, value: int) -> None:
+        """
+        Set the health points of the room.
+        :param value: int - the new health points
+        """
+
+        if hasattr(self, "_health") and self.role is not None:
+            if value >= 0 and value <= self.max_power:
+                self._health = value
+
+                if self._health == self.max_power: # normal
+                    self.icon = self._icon_preset
+
+                elif self._health < self.max_power and self._health > 0: # damaged
+                    pg.transform.threshold(self.icon, self._icon_preset, self._icon_color_stable, (0,0,0,0), self._icon_color_damaged, inverse_set=True)
+
+                else:
+                    pg.transform.threshold(self.icon, self._icon_preset, self._icon_color_stable, (0,0,0,0), self._icon_color_destroyed, inverse_set=True)
 
         return
