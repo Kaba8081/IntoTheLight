@@ -25,7 +25,7 @@ class Spaceship:
     _room_enine: Union[Room, None]
     _room_weapons: Union[Room, None]
     _room_oxygen: Union[Room, None]
-    _room_bridge: Union[Room, None]
+    _room_pilot: Union[Room, None]
 
 
     def __init__(self, ship_type: str, screen_size: tuple[int, int], enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
@@ -43,7 +43,7 @@ class Spaceship:
         self._room_enine = None
         self._room_weapons = None
         self._room_oxygen = None
-        self._room_bridge = None
+        self._room_pilot = None
         self.rooms = []
 
         # required data about these systems
@@ -79,12 +79,12 @@ class Spaceship:
                     self._room_weapons = self.installed_systems[system_name]
                 case "medbay":
                     self._room_medbay = self.installed_systems[system_name]
-                case "o2":
+                case "oxygen":
                     self._room_oxygen = self.installed_systems[system_name]
                     self._room_oxygen.power = 1
-                case "bridge":
-                    self._room_bridge = self.installed_systems[system_name]
-                    self._room_bridge.power = 1
+                case "pilot":
+                    self._room_pilot = self.installed_systems[system_name]
+                    self._room_pilot.power = 1
         
         if enemy: # flip all the rooms hitboxes horizontally
             centery = self.get_center()[0]
@@ -281,23 +281,6 @@ class Spaceship:
                                 (connected_tiles[0].rect.centery + connected_tiles[1].rect.centery)/2
                                 )
                     Door(door_coords, self.doors)
-    
-    def activate_weapon(self, weapon: Weapon) -> bool:
-        """
-        Try to activate a weapon if there is enough power left. If successful, return True.
-        :param weapon: Weapon - the weapon to activate
-        """
-
-        curr_power = self.current_power
-        max_power = self.max_power 
-        power_left = max_power - curr_power
-
-        if power_left >= weapon.req_power and self.check_if_system_accepts_power("weapons", weapon.req_power):
-            self.toggle_system_power(("weapons", True), weapon.req_power)
-            weapon.activate()
-            return True
-
-        return False
     
     def dev_draw_room_hitboxes(self, screen: pg.surface.Surface) -> None:
         """

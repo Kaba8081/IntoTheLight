@@ -147,7 +147,7 @@ class Weapon(UpgradeSlot):
             self.curr_charge -= round(self.charge_speed * dt, 2) # slowly decrease the charge
 
             anim_charge_len = len(self._anim_charge)
-            anim_charge_index = int((self.curr_charge) // (self.charge_time // anim_charge_len))
+            anim_charge_index = int((self.curr_charge) // (self.charge_time // anim_charge_len) - 0.01) 
 
             self.change_texture(self._anim_charge[anim_charge_index])
 

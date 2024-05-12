@@ -137,13 +137,23 @@ class Player(Spaceship):
         
         print("Could not check if system accepts power: System not found!")
         return False
-        thrusters = []
-        for room in self.rooms:
-            room_thrusters = room.thrusters
-            if room_thrusters is not None:
-                thrusters.append(room_thrusters)
-            
-        return thrusters if len(thrusters) > 0 else None
+
+    def activate_weapon(self, weapon: Weapon) -> bool:
+        """
+        Try to activate a weapon if there is enough power left. If successful, return True.
+        :param weapon: Weapon - the weapon to activate
+        """
+
+        curr_power = self.current_power
+        max_power = self.max_power 
+        power_left = max_power - curr_power
+
+        if power_left >= weapon.req_power and self.check_if_system_accepts_power("weapons", weapon.req_power):
+            self.toggle_system_power(("weapons", True), weapon.req_power)
+            weapon.activate()
+            return True
+
+        return False
 
     @property
     def max_power(self) -> int:

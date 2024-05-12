@@ -1,9 +1,14 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union
 import pygame as pg
-from typing import Union
-from random import randint
+
+if TYPE_CHECKING:
+    from modules.spaceship.upgrades import *
 
 from modules.spaceship.spaceship import Spaceship
 from modules.spaceship.room import Room
+
+from random import randint
 
 class Enemy(Spaceship):
     # public 
@@ -50,3 +55,13 @@ class Enemy(Spaceship):
                 room.aimed_at = True
         
         return
+
+    def activate_weapon(self, weapon: Weapon) -> bool:
+        """
+        Try to activate a weapon if there is enough power left. If successful, return True.
+        :param weapon: Weapon - the weapon to activate
+        """
+
+        # TODO: implement enemy power management
+
+        return True

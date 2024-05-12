@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from modules.spaceship.upgrades import Weapon
 from modules.player import Player
 from modules.spaceship.room import Room
-from modules.resources import textures, get_font, button_palletes
+from modules.resources import textures, get_font, button_palletes, systems
 
 class InterfaceController(pg.sprite.Group):
     # public
@@ -24,6 +24,13 @@ class InterfaceController(pg.sprite.Group):
 
     _power_color_on = (106, 190, 48)
     _power_color_off = (132, 126, 135)
+    _power_bar_size = (32, 8)
+    _power_bar_gap = 10
+    _power_system_bar_size = (24, 8)
+    _power_system_bar_gap = 10
+    _power_system_bar_icon_size = (32, 32)
+    _power_bar_system_icons: dict[str, pg.surface.Surface]
+    _power_gap_between_systems = (_power_system_bar_icon_size[0] + 8, _power_system_bar_icon_size[1] + 8)
 
     _installed_systems_icon_bar: pg.sprite.Group
     _wbar_surface: pg.Surface
@@ -59,17 +66,21 @@ class InterfaceController(pg.sprite.Group):
 
         # Power bar
         self._installed_systems_icon_bar = pg.sprite.Group()
-        coords = [28, self.resolution[1]-32]
+        coords = [self._power_bar_size[0] + 32, self.resolution[1]-self._power_gap_between_systems[1]]
         for system_name in self._player.installed_systems:
-            coords [0] += 36
             system = self._player.installed_systems[system_name]
             powered = True if system.power>0 else False
 
             power_icon = PowerIcon(powered, system_name, system, coords, self._installed_systems_icon_bar)
             self._installed_systems_icon_bar.add(power_icon)
+            coords [0] += self._power_gap_between_systems[0]
 
         self._player_power_max = player.max_power
         self._player_power_current = self._player_power_max
+        self._power_bar_system_icons = {}
+        for system in systems:
+            for state in ["on", "off"]:
+                self._power_bar_system_icons[f"{system}_icon_{state}"] = pg.transform.scale(textures[f"{system}_icon_{state}"], self._power_system_bar_icon_size)
 
         # Weapons bar
         self._wbar_module_size = 4
@@ -154,24 +165,23 @@ class InterfaceController(pg.sprite.Group):
         coords = (16, self.resolution[1]-32)
         for i in range(0, self._player_power_max):
             if i < curr_power: # draw full bar
-                pg.draw.rect(self.surface, self._power_color_on, (coords[0], coords[1] - i * 20, 32, 16))
+                pg.draw.rect(self.surface, self._power_color_on, (coords[0], coords[1] - i * self._power_bar_gap, self._power_bar_size[0], self._power_bar_size[1]))
             else: # draw empty bar
-                pg.draw.rect(self.surface, self._power_color_off, (coords[0], coords[1] - i * 20, 32, 16), 2)
+                pg.draw.rect(self.surface, self._power_color_off, (coords[0], coords[1] - i * self._power_bar_gap, self._power_bar_size[0], self._power_bar_size[1]), 1)
 
         # draw every system's power bar
         for index, system_name in enumerate(self._player.installed_systems):
             system = self._player.installed_systems[system_name]
             system_power = system.power
-            system_icon = "{system_name}_icon_{state}".format(state="on" if system_power > 0 else "off", system_name=system_name)
             
-            coords = (64 + 36 * index, self.resolution[1]-32)
-            self.surface.blit(textures[system_icon], coords)
+            coords = (self._power_bar_size[0] + 32 + (self._power_gap_between_systems[0] * index), self.resolution[1] - self._power_gap_between_systems[1])
 
+            coords = (coords[0] + (self._power_system_bar_icon_size[0]//2 - self._power_system_bar_size[0]//2), coords[1] - (self._power_system_bar_icon_size[1]//2))
             for power_level in range(0, system.max_power):
                 if  power_level < system_power: # draw full bar
-                    pg.draw.rect(self.surface, self._power_color_on, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16))
+                    pg.draw.rect(self.surface, self._power_color_on, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]))
                 else: # draw empty bar
-                    pg.draw.rect(self.surface, self._power_color_off, (coords[0] + 2, coords[1] - 24 - power_level*18, 28, 16), 2)
+                    pg.draw.rect(self.surface, self._power_color_off, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]), 2)
         return
     
     def _draw_weapons(self) -> None:
@@ -354,10 +364,6 @@ class PowerIcon(pg.sprite.Sprite):
         power = self._room_obj.power
         self.image = textures["{system}_icon_{state}".format(system=self.system_name, state="on" if power > 0 else "off")]
 
-    def draw(self, surface: pg.surface.Surface) -> None:
-        """Draw the power icon to the provided pygame.surface.Surface"""
-        surface.blit(self.image, self.rect)
-
     def toggle(self, mouse_clicked: tuple[int, int, int]) -> None:
         """Update the corresponding system power level based on user input."""
         if self.system_name in ["weapons"]: # weapons are handled separately
@@ -496,7 +502,7 @@ class ResourceIcon():
         :param font_size: int - the font size of the resource count
         """
         self._player = player
-        self._icon = textures[f"{role}_icon"]
+        self._icon = textures["ui_icons"][f"{role}"]
         self._icon = pg.transform.scale(self._icon, (icon_size, icon_size))
         self._icon_rect = self._icon.get_rect()
         self._font = get_font("arial", font_size)

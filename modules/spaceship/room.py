@@ -39,6 +39,7 @@ class Room(pg.sprite.Group):
     _icon_color_stable = (105, 106, 106)
     _icon_color_damaged = (249,163,27)
     _icon_color_destroyed = (180, 32, 42)
+    _icon_size = (32, 32)
 
     def __init__(self, 
                  pos: tuple[int, int],
@@ -90,7 +91,7 @@ class Room(pg.sprite.Group):
         self.level = level if level is not None else 0
         self.icon = None
         if self.role is not None:
-            self._icon_preset = textures[self.role]
+            self._icon_preset = pg.transform.scale(textures["system_icons"][self.role], self._icon_size)
             self._icon_preset = pg.transform.rotate(self._icon_preset, 270) if enemy_ship else self._icon_preset
             self.icon = self._icon_preset.__copy__()
             self._power = 0
@@ -268,7 +269,7 @@ class Room(pg.sprite.Group):
                 raise AttributeError
             match self.role:
                 # rooms where the power level is the same as the room level
-                case "weapons" | "thrusters" | "medbay" | "o2" | "engines" | "bridge" | "cameras":
+                case "weapons" | "thrusters" | "medbay" | "oxygen" | "engines" | "pilot" | "sensors":
                     return self.level
                 
                 case "shields":
