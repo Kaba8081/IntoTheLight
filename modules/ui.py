@@ -22,8 +22,8 @@ class InterfaceController(pg.sprite.Group):
 
     _enemy: Enemy
 
-    _power_color_on = (106, 190, 48)
-    _power_color_off = (132, 126, 135)
+    _power_color_on = (100, 255, 98)
+    _power_color_off = (255, 255, 255)
     _power_bar_size = (32, 8)
     _power_bar_gap = 10
     _power_system_bar_size = (24, 8)
@@ -70,7 +70,7 @@ class InterfaceController(pg.sprite.Group):
             system = self._player.installed_systems[system_name]
             powered = True if system.power>0 else False
 
-            power_icon = PowerIcon(powered, system_name, system, coords, self._installed_systems_icon_bar)
+            power_icon = PowerIcon(powered, system_name, system, coords, self._power_system_bar_icon_size, self._installed_systems_icon_bar)
             self._installed_systems_icon_bar.add(power_icon)
             coords [0] += self._power_gap_between_systems[0]
 
@@ -235,7 +235,7 @@ class InterfaceController(pg.sprite.Group):
         """
 
         for picon in self._installed_systems_icon_bar:
-            if picon.rect.collidepoint(mouse_pos):
+            if picon.hitbox.collidepoint(mouse_pos):
                 picon.toggle(mouse_clicked)
                 break
 
@@ -269,7 +269,7 @@ class InterfaceController(pg.sprite.Group):
         # draw texture sprites
         for sprite in self.sprites():
             sprite.draw(self.surface)
-            pass
+
         self._installed_systems_icon_bar.update()
 
         self._draw_power()
@@ -346,21 +346,23 @@ class PowerIcon(pg.sprite.Sprite):
                  powered: bool,
                  system_name: str, room_obj: Room, 
                  coords: tuple[int, int],
+                 size: tuple[int, int],
                  group: pg.sprite.Group) -> None:
         pg.sprite.Sprite.__init__(self, group)
         self._room_obj = room_obj
         self.system_name = system_name
         self.coords = coords
-        
+        # textures["system_icons"][system_name]["green" if powered else "grey"]
         self.icon = textures["system_icons"][system_name]["green" if powered else "grey"]
         self.image = self.icon.image
-        self.rect = self.image.get_rect(topleft=coords)
+        self.rect = self.image.get_rect(center=(coords[0] + size[0]//2, coords[1] + size[1]//2))
+        self.hitbox = pg.Rect(coords, size)
 
     def update(self) -> None:
         """Update the power icon based on the power level of the system."""
         power = self._room_obj.power
-        self.icon = textures["system_icons"][self.system_name]["green" if power > 0 else "grey"]
-        self.image = self.icon.image
+        self.icon = textures["system_icons"][self.system_name]["green" if power>0 else "grey"]
+        self.image = self.icon.image.convert_alpha()
 
     def toggle(self, mouse_clicked: tuple[int, int, int]) -> None:
         """Update the corresponding system power level based on user input."""

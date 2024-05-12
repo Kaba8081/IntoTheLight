@@ -53,6 +53,7 @@ def autocomplete_configs(config: dict, config_str: str) -> dict:
 def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> Union[pg.Surface, dict]:
 
     src_path = kwargs["basePath"] if "basePath" in kwargs.keys() else _FILEPATH
+    colorkey = (255, 0, 255) # hardcoded colorkey for FTL images (may break in the future)
 
     try:
         if isinstance(name, list): # iterate through every name in list
@@ -66,6 +67,7 @@ def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> U
                     extension=kwargs["extension"] if "extension" in kwargs.keys() else extension,
                     name=sprite_name
                 ))).convert_alpha()
+                texture_dict[sprite_name].image.set_colorkey(colorkey, pg.RLEACCEL)
                 texture_dict[sprite_name].rect = texture_dict[sprite_name].image.get_rect()
 
             return texture_dict
@@ -77,6 +79,7 @@ def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> U
                 extension=kwargs["extension"] if "extension" in kwargs.keys() else extension,
                 name=name
             ))).convert_alpha()
+            result.image.set_colorkey(colorkey, pg.RLEACCEL)
             result.rect = result.image.get_rect()
 
             return result
@@ -334,27 +337,6 @@ textures = {
     "shield_upgrades": {
         "shield_mk1": load_texture("laser_mk1_off")
     },
-
-    # ui elements
-    "shields_icon_off":  load_texture("engine_icon_off"),
-    "engines_icon_off":  load_texture("engine_icon_off"),
-    "oxygen_icon_off":  load_texture("engine_icon_off"),
-    "medbay_icon_off":  load_texture("engine_icon_off"),
-    "weapons_icon_off":  load_texture("weapons_icon_off"),
-    "drones_icon_off":  load_texture("engine_icon_off"),
-    "pilot_icon_off":  load_texture("engine_icon_off"),
-    "sensors_icon_off":  load_texture("engine_icon_off"),
-    "doors_icon_off": load_texture("engine_icon_off"),
-
-    "shields_icon_on":  load_texture("engine_icon_on"),
-    "engines_icon_on":  load_texture("engine_icon_on"),
-    "oxygen_icon_on":  load_texture("engine_icon_on"),
-    "medbay_icon_on":  load_texture("engine_icon_on"),
-    "weapons_icon_on":  load_texture("weapons_icon_on"),
-    "drones_icon_on":  load_texture("engine_icon_on"),
-    "pilot_icon_on":  load_texture("engine_icon_on"),
-    "sensors_icon_on":  load_texture("engine_icon_on"),
-    "doors_icon_on": load_texture("engine_icon_on"),
 }
 
 # list of systems, while also defining the order in which they are sorted and drawn
