@@ -3,7 +3,7 @@ import pygame as pg
 from modules.display import Display
 from modules.player import Player
 from modules.enemy import Enemy
-from modules.resources import keybinds, CONFIG
+from modules.resources import keybinds, CONFIG, load_textures
 
 def main() -> None:
     pg.init()
@@ -14,6 +14,7 @@ def main() -> None:
     clock = pg.time.Clock()
     dt = 0
 
+    load_textures()
     player = Player()
     enemy = Enemy(offset=(resolution[0] * float(CONFIG["ratio"]),0))
     display = Display(screen, resolution, float(CONFIG["ratio"]), player, enemy)

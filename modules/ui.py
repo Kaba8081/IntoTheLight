@@ -29,7 +29,6 @@ class InterfaceController(pg.sprite.Group):
     _power_system_bar_size = (24, 8)
     _power_system_bar_gap = 10
     _power_system_bar_icon_size = (32, 32)
-    _power_bar_system_icons: dict[str, pg.surface.Surface]
     _power_gap_between_systems = (_power_system_bar_icon_size[0] + 8, _power_system_bar_icon_size[1] + 8)
 
     _installed_systems_icon_bar: pg.sprite.Group
@@ -77,10 +76,6 @@ class InterfaceController(pg.sprite.Group):
 
         self._player_power_max = player.max_power
         self._player_power_current = self._player_power_max
-        self._power_bar_system_icons = {}
-        for system in systems:
-            for state in ["on", "off"]:
-                self._power_bar_system_icons[f"{system}_icon_{state}"] = pg.transform.scale(textures[f"{system}_icon_{state}"], self._power_system_bar_icon_size)
 
         # Weapons bar
         self._wbar_module_size = 4
@@ -138,7 +133,7 @@ class InterfaceController(pg.sprite.Group):
         self._status_bar_size = (self.resolution[0] * self._status_bar_ratio, 128)
         self._status_surface = pg.Surface(self._status_bar_size, pg.SRCALPHA)
 
-        roles = ["fuel", "missile", "drone_parts"]
+        roles = ["fuel", "missiles", "drones"]
         self._resource_icons = []
         for i in range(3):
             self._resource_icons.append(
@@ -274,6 +269,7 @@ class InterfaceController(pg.sprite.Group):
         # draw texture sprites
         for sprite in self.sprites():
             sprite.draw(self.surface)
+            pass
         self._installed_systems_icon_bar.update()
 
         self._draw_power()
@@ -292,7 +288,8 @@ class InterfaceController(pg.sprite.Group):
         :param screen: pg.surface.Surface - the surface to draw the interface on
         """
         
-        screen.blit(self.surface, (0,0))
+        screen.blit(self.surface, (0,0), special_flags=pg.BLEND_MAX)
+        # BLEND_MAX make sure the ui is drawn on top of everything else, while still being transparent
 
     def draw_enemy_interface(self, screen: pg.surface.Surface) -> None:
         """
@@ -352,17 +349,18 @@ class PowerIcon(pg.sprite.Sprite):
                  group: pg.sprite.Group) -> None:
         pg.sprite.Sprite.__init__(self, group)
         self._room_obj = room_obj
-        self.powered = powered
         self.system_name = system_name
         self.coords = coords
         
-        self.image = textures["{system}_icon_{state}".format(system=self.system_name, state="on" if powered else "off")]
-        self.rect = self.image.get_rect(topleft=self.coords)
+        self.icon = textures["system_icons"][system_name]["green" if powered else "grey"]
+        self.image = self.icon.image
+        self.rect = self.image.get_rect(topleft=coords)
 
     def update(self) -> None:
         """Update the power icon based on the power level of the system."""
         power = self._room_obj.power
-        self.image = textures["{system}_icon_{state}".format(system=self.system_name, state="on" if power > 0 else "off")]
+        self.icon = textures["system_icons"][self.system_name]["green" if power > 0 else "grey"]
+        self.image = self.icon.image
 
     def toggle(self, mouse_clicked: tuple[int, int, int]) -> None:
         """Update the corresponding system power level based on user input."""
@@ -490,7 +488,7 @@ class ResourceIcon():
                  player: Player, 
                  pos: tuple[int, int], 
                  size: tuple[int, int], 
-                 role: Literal["fuel", "missile", "drone_parts", "scrap"],
+                 role: Literal["fuel", "missiles", "drone_parts", "scrap"],
                  font_size: int = 16,
                  icon_size: int = 24
                  ) -> None:
@@ -503,8 +501,7 @@ class ResourceIcon():
         """
         self._player = player
         self._icon = textures["ui_icons"][f"{role}"]
-        self._icon = pg.transform.scale(self._icon, (icon_size, icon_size))
-        self._icon_rect = self._icon.get_rect()
+        self._icon_rect = self._icon.rect
         self._font = get_font("arial", font_size)
 
         self.role = role
@@ -525,7 +522,7 @@ class ResourceIcon():
             case "missile":
                 resource_count = self._player.missles
             case "drone_parts":
-                resource_count = self._player.drone_parts
+                resource_count = self._player.drones
             case "scrap":
                 resource_count = self._player.scrap
         
@@ -534,7 +531,7 @@ class ResourceIcon():
         pg.draw.rect(screen, curr_color, self.rect, 4)
 
         # draw the icon
-        screen.blit(self._icon, (self.rect.centerx - self._icon_rect.width, self.rect.centery - self._icon_rect.height // 2))
+        screen.blit(self._icon.image, (self.rect.centerx - self._icon_rect.width, self.rect.centery - self._icon_rect.height // 2))
 
         # draw the resource count
         label = self._font.render(str(resource_count), True, curr_color)

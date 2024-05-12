@@ -15,7 +15,7 @@ class Player(Spaceship):
     enemy: bool
     fuel: int
     missles: int
-    drone_parts: int
+    drones: int
     scrap: int
     selected_weapon: Union[Weapon, None]
     autofire: bool
@@ -30,7 +30,7 @@ class Player(Spaceship):
         # additional player data
         self.fuel = 16
         self.missles = 8
-        self.drone_parts = 2
+        self.drones = 2
         self.scrap = 10
 
         # weapon logic

@@ -93,7 +93,7 @@ class Spaceship:
                 hitbox_y = room.hitbox.centery
                 room.hitbox.centery = centery - hitbox_y + centery
 
-    def draw(self, screen: pg.Surface, enemy_screen: pg.Surface = None) -> None:
+    def draw(self, screen: pg.Surface) -> None:
         """
         Draw's the spaceship and it's components on screen.
         :param screen: The screen to draw the spaceship on.

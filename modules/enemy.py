@@ -41,7 +41,6 @@ class Enemy(Spaceship):
         
         return None
 
-
     def hover_weapon(self, mouse_pos: tuple[int, int]) -> None:
         """
         Highlight the room if the cursor is hovering over it.

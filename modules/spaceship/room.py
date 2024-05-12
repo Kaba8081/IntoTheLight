@@ -35,12 +35,6 @@ class Room(pg.sprite.Group):
     _power: int 
     _health: int
 
-    _icon_preset: pg.Surface
-    _icon_color_stable = (105, 106, 106)
-    _icon_color_damaged = (249,163,27)
-    _icon_color_destroyed = (180, 32, 42)
-    _icon_size = (32, 32)
-
     def __init__(self, 
                  pos: tuple[int, int],
                  realpos: tuple[int, int],
@@ -91,9 +85,7 @@ class Room(pg.sprite.Group):
         self.level = level if level is not None else 0
         self.icon = None
         if self.role is not None:
-            self._icon_preset = pg.transform.scale(textures["system_icons"][self.role], self._icon_size)
-            self._icon_preset = pg.transform.rotate(self._icon_preset, 270) if enemy_ship else self._icon_preset
-            self.icon = self._icon_preset.__copy__()
+            self.icon = textures["system_icons"][self.role]["overlayGrey"]
             self._power = 0
             self._health = self.max_power
 
@@ -135,9 +127,9 @@ class Room(pg.sprite.Group):
 
         # draw icon if the room has a role
         if self.icon is not None:
-            screen.blit(self.icon, 
-                        (self.rect.centerx-(self.icon.get_width()/2), 
-                         self.rect.centery-(self.icon.get_height()/2))
+            screen.blit(self.icon.image, 
+                        (self.rect.centerx-(self.icon.image.get_width()/2), 
+                         self.rect.centery-(self.icon.image.get_height()/2))
                         )
         
         # darken the room if selected or hovering
@@ -332,12 +324,37 @@ class Room(pg.sprite.Group):
                 self._health = value
 
                 if self._health == self.max_power: # normal
-                    self.icon = self._icon_preset
+                    self.icon = textures["system_icons"][self.role]["overlayGrey"]
 
                 elif self._health < self.max_power and self._health > 0: # damaged
-                    pg.transform.threshold(self.icon, self._icon_preset, self._icon_color_stable, (0,0,0,0), self._icon_color_damaged, inverse_set=True)
+                    self.icon = textures["system_icons"][self.role]["overlayOrange"]
 
-                else:
-                    pg.transform.threshold(self.icon, self._icon_preset, self._icon_color_stable, (0,0,0,0), self._icon_color_destroyed, inverse_set=True)
+                else: # destroyed
+                    self.icon = textures["system_icons"][self.role]["overlayRed"]
 
+        return
+    
+    @property
+    def icon(self) -> Union[pg.Surface, None]:
+        """Return the icon of the room. (If the room is a system room, else return None)"""
+
+        if hasattr(self, "_icon"):
+            return self._icon
+        return None
+    
+    @icon.setter
+    def icon(self, icon: pg.sprite.Sprite) -> None:
+        """
+        Set the icon of the room.
+        :param icon: pg.sprite.Sprite - the new icon
+        """
+
+        if icon is not None:
+            if self._enemy_ship:
+                self._icon = pg.sprite.Sprite()
+                self._icon.image = icon.image.copy()
+                self._icon.image = pg.transform.rotate(self._icon.image, 270)
+                self._icon.rect = self._icon.image.get_rect()
+            else:
+                self._icon = icon
         return

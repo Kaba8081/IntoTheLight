@@ -1,3 +1,4 @@
+from typing import Union
 import pygame as pg
 from os import path
 import json
@@ -49,6 +50,40 @@ def autocomplete_configs(config: dict, config_str: str) -> dict:
                     if "clicked_hover" not in states:
                         button_palletes[pallete_id][category]["clicked_hover"] = button_palletes[pallete_id][category]["clicked"]
 
+def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> Union[pg.Surface, dict]:
+
+    src_path = kwargs["basePath"] if "basePath" in kwargs.keys() else _FILEPATH
+
+    try:
+        if isinstance(name, list): # iterate through every name in list
+            texture_dict = dict()
+            
+            for sprite_name in name:
+                texture_dict[sprite_name] = pg.sprite.Sprite()
+                texture_dict[sprite_name].image = pg.image.load(path.join(src_path, "{prefix}{name}{suffix}{extension}".format(
+                    prefix=kwargs["prefix"] if "prefix" in kwargs.keys() else "",
+                    suffix=kwargs["suffix"] if "suffix" in kwargs.keys() else "",
+                    extension=kwargs["extension"] if "extension" in kwargs.keys() else extension,
+                    name=sprite_name
+                ))).convert_alpha()
+                texture_dict[sprite_name].rect = texture_dict[sprite_name].image.get_rect()
+
+            return texture_dict
+        else:
+            result = pg.sprite.Sprite()
+            result.image = pg.image.load(path.join(src_path, "{prefix}{name}{suffix}{extension}".format(
+                prefix=kwargs["prefix"] if "prefix" in kwargs.keys() else "",
+                suffix=kwargs["suffix"] if "suffix" in kwargs.keys() else "",
+                extension=kwargs["extension"] if "extension" in kwargs.keys() else extension,
+                name=name
+            ))).convert_alpha()
+            result.rect = result.image.get_rect()
+
+            return result
+    except Exception as e:
+        print(f"Error loading image {name} from {src_path}! {e}")
+        return pg.Surface((1,1))
+
 CONFIG = load_config()
 
 keybinds = {
@@ -86,7 +121,7 @@ ship_layouts = {
             "level": 1,
             "upgrade_slots":{
                 "weapon": {"top":None},
-                "shield": {"right":None}
+                "shield": {"right":"shield_mk1"}
             }
         },
         {
@@ -237,7 +272,7 @@ texture_config = {
         "basePath": path.join(_FILEPATH, "icons"),
         "extension": ".png",
         "prefix": "s_",
-        "suffix": "_overlay",
+        "suffix": {"white": "", "blue": "_blue1", "green": "_green1", "green_hover": "_green2", "grey": "_grey1", "grey_hover": "_grey2", "orange":"_orange1", "orange_hover": "_orange2", "red": "_red1", "red_hover": "_red2", "overlay": "_overlay", "overlay2": "_overlay2"}
     },
     "ui_icons": {
         "basePath": path.join(_FILEPATH, "ui_icons"),
@@ -393,26 +428,29 @@ button_palletes = {
 
 autocomplete_configs(button_palletes, "button_palletes")
 
-# add icons to textures
-for system in systems:
-    try:
-        textures["system_icons"][system] = pg.image.load(path.join(texture_config["icons"]["basePath"], "{prefix}{system}{suffix}{extension}".format(
-            prefix=texture_config["icons"]["prefix"],
-            suffix=texture_config["icons"]["suffix"],
-            extension=texture_config["icons"]["extension"],
-            system=system
-        )))
-    except:
-        print(f"Icon for system {system} not found!")
-        textures["system_icons"][system] = pg.Surface((1,1))
+def load_textures(): # use this function after initializing the display
+    # add icons to textures
+    for system in systems:
+        textures["system_icons"][system] = dict()
+        for suffix in texture_config["icons"]["suffix"].keys():
+            textures["system_icons"][system][suffix] = load_ftl_image(system, basePath=texture_config["icons"]["basePath"], prefix=texture_config["icons"]["prefix"], suffix=texture_config["icons"]["suffix"][suffix])
 
-for currency in ["fuel", "missile", "drone_parts", "scrap"]:
-    try:
-        textures["ui_icons"][currency] = pg.image.load(path.join(texture_config["ui_icons"]["basePath"], "{prefix}{currency}{extension}".format(
-            prefix=texture_config["ui_icons"]["prefix"],
-            extension=texture_config["ui_icons"]["extension"],
-            currency=currency
-        )))
-    except:
-        print(f"Icon for currency {currency} not found!")
-        textures["ui_icons"][currency] = pg.image.load(path.join(texture_config["ui_icons"]["basePath"],"icon_placeholder.png"))
+        additional_sprites = {
+            "overlayGrey": (125, 125, 125),
+            "overlayOrange": (255, 152, 48),
+            "overlayRed": (255, 0, 0),
+            "overlayBlue": (93, 234, 239),
+        }
+
+        for suffix, color in additional_sprites.items():
+            textures["system_icons"][system][suffix] = pg.sprite.Sprite()
+            textures["system_icons"][system][suffix].image = textures["system_icons"][system]["overlay"].image.copy()
+            textures["system_icons"][system][suffix].rect = textures["system_icons"][system][suffix].image.get_rect()
+
+            bildPixel = pg.surfarray.pixels3d(textures["system_icons"][system][suffix].image)
+            for i in range(3):
+                bildPixel[bildPixel[:,:,i] == 255, i] = color[i]
+
+            del bildPixel
+
+    textures["ui_icons"] = load_ftl_image(["fuel", "missiles", "drones", "scrap"], **texture_config["ui_icons"])
