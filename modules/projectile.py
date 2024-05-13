@@ -69,6 +69,16 @@ class Projectile():
         else:
             self.delay -= dt
 
+        shield = self._target_room.parent.installed_shield 
+        if shield is not None and self.switched_screens:
+            if hasattr(shield, "shield_mask") and shield.charge > 0:
+                normalized_pos = (self._vector2d_end[0] - shield.pos[0], self._vector2d_end[1] - shield.pos[1])
+                shield_mask_size = shield.shield_mask.get_size()
+                if normalized_pos[0] <= shield_mask_size[0] and normalized_pos[1] <= shield_mask_size[1] and shield.shield_mask.get_at(normalized_pos) == 1:
+                    self.hit_target = True
+                    shield.take_damage(self)
+                    return
+        del shield
         # TODO: Check for enemy shields using self._target_room.parent
 
         if self._vector2d_start == self.target_pos:

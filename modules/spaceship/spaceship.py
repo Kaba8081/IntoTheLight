@@ -1,6 +1,7 @@
 import pygame as pg
 from typing import Union
 from random import randint
+from collections import OrderedDict
 
 from modules.spaceship.room import Room
 from modules.spaceship.door import Door
@@ -14,7 +15,7 @@ class Spaceship:
     doors: pg.sprite.Group
     rooms: list[Room]
     projectiles: list[Projectile]
-    installed_systems: dict[str, Room]
+    installed_systems: OrderedDict[str, Room]
     installed_weapons: dict[str, Weapon]
     installed_thrusters: dict[str, Thruster]
     installed_shield: Union[Shield, None]
@@ -85,7 +86,11 @@ class Spaceship:
                 case "pilot":
                     self._room_pilot = self.installed_systems[system_name]
                     self._room_pilot.power = 1
-        
+        # sort the rooms by their role
+        temp_systems = [system for system in systems if system in self.installed_systems] # get the intersection of the two lists
+        self.installed_systems = OrderedDict((k, self.installed_systems[k]) for k in temp_systems)
+        del temp_systems
+
         if enemy: # flip all the rooms hitboxes horizontally
             centery = self.get_center()[0]
 
@@ -150,6 +155,9 @@ class Spaceship:
                 del projectile
             else:
                 projectile.update(dt)
+
+        if self.installed_shield is not None:
+            self.installed_shield.update(dt)
 
     def get_corners(self) -> tuple[tuple[int, int], tuple[int, int]]:
         """

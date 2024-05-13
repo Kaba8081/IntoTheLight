@@ -50,7 +50,7 @@ def autocomplete_configs(config: dict, config_str: str) -> dict:
                     if "clicked_hover" not in states:
                         button_palletes[pallete_id][category]["clicked_hover"] = button_palletes[pallete_id][category]["clicked"]
 
-def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> Union[pg.Surface, dict]:
+def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> Union[pg.sprite.Sprite, dict]:
 
     src_path = kwargs["basePath"] if "basePath" in kwargs.keys() else _FILEPATH
     colorkey = (255, 0, 255) # hardcoded colorkey for FTL images (may break in the future)
@@ -436,3 +436,6 @@ def load_textures(): # use this function after initializing the display
             del bildPixel
 
     textures["ui_icons"] = load_ftl_image(["fuel", "missiles", "drones", "scrap"], **texture_config["ui_icons"])
+    
+    textures["shields"] = dict()
+    textures["shields"]["enemyShield"] = load_ftl_image("enemy_shields", basePath=path.join(_FILEPATH, "ship"))

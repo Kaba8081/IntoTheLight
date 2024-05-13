@@ -233,9 +233,15 @@ class Shield(UpgradeSlot):
     pos: tuple[int, int]
     realpos: tuple[int, int]
     shield_image: pg.Surface
-    rect: pg.Rect
+    shield_sprite: pg.sprite.Sprite
+    shield_mask: pg.mask.Mask
     hitbox: pg.Rect
 
+    charge: int
+    curr_charge_percent: float
+    max_charge: int
+    charge_time: int
+    charge_change: int
     # private
 
     def __init__(self, 
@@ -243,6 +249,7 @@ class Shield(UpgradeSlot):
                  realpos: tuple[int, int],
                  orientation: Literal["top", "right", "bottom", "left"],
                  shield_id: str,
+                 shield: pg.sprite.Sprite,
                  sprite_group: pg.sprite.Group,
                  ship_corners: tuple[tuple[int, int], tuple[int, int]],
                  ) -> None:
@@ -253,9 +260,17 @@ class Shield(UpgradeSlot):
         :param ship_corners: tuple[tuple[int, int], tuple[int, int]] - the corners of the ship (top-left, bottom-right)
         """
         UpgradeSlot.__init__(self, pos, orientation, textures["shield_upgrades"][shield_id], sprite_group)
-        
+        self.shield_sprite = shield
+
         self.pos = pos
         self.realpos = realpos
+
+        # shield logic
+        self.charge = 1
+        self.curr_charge_percent = 0.0
+        self.max_charge = 1
+        self.charge_time = 100
+        self.charge_change = 25
 
     def post_init_update(self, ship_corners: tuple[tuple[int, int], tuple[int, int]], ship_center: tuple[int, int]) -> None:
         """
@@ -267,14 +282,40 @@ class Shield(UpgradeSlot):
         width = ship_corners[1][0] - ship_corners[0][0]
         height = ship_corners[1][1] - ship_corners[0][1]
         
-        self.shield_image = pg.Surface((width+144, height+144), flags=pg.SRCALPHA)
-        self.shield_rect = self.shield_image.get_rect()
-        self.shield_rect.center = ship_center
-        pg.draw.ellipse(self.shield_image, (108, 142, 196, 100), self.shield_image.get_rect())
+        self.shield_sprite.image = pg.transform.scale(self.shield_sprite.image, (width+144, height+144))
+        self.shield_sprite.rect = self.shield_sprite.image.get_rect(center=ship_center)
+        self.shield_mask = pg.mask.from_surface(self.shield_sprite.image)
         self.hitbox = pg.Rect(self.realpos, (width, height))
         
     def draw(self, screen: pg.Surface) -> None:
-        if hasattr(self, "shield_image") and hasattr(self, "shield_rect"):
-            screen.blit(self.shield_image, self.shield_rect)
+        if hasattr(self, "shield_sprite") and self.charge > 0:
+            screen.blit(self.shield_sprite.image, self.shield_sprite.rect)
         else:
             print("shield_upgrade has no shield_image attribute!")
+
+    def update(self, dt: float) -> None:
+        """
+        Update the shield's charge.
+        :param dt: float - the time since the last frame
+        """
+        if self.charge < self.max_charge:
+            self.curr_charge_percent = (self.curr_charge_percent + dt * self.charge_change / 100)
+
+            if self.curr_charge_percent >= 1:
+                self.charge += 1
+                self.curr_charge_percent = 0
+
+        return
+
+    def take_damage(self, projectile: Projectile) -> None:
+        """
+        Take damage from a projectile.
+        :param projectile: Projectile - the projectile that hit the shield
+        """
+
+        if projectile.type == "beam": # beams don't deal damage to shields
+            return 
+        else:
+            self.charge -= 1
+
+        return

@@ -175,16 +175,21 @@ class Room(pg.sprite.Group):
         
         # find the position of the upgrade slot
         upgrade_pos = None
+        upgrade_realpos = None
 
         match orientation:
             case "top":
                 upgrade_pos = (self.rect.centerx, self.rect.y)
+                upgrade_realpos = (self.hitbox.centerx, self.hitbox.y)
             case "right":
                 upgrade_pos = (self.rect.right, self.rect.centery)
+                upgrade_realpos = (self.hitbox.right, self.hitbox.centery)
             case "bottom":
                 upgrade_pos = (self.rect.centerx, self.rect.bottom)
+                upgrade_realpos = (self.hitbox.centerx, self.hitbox.bottom)
             case "left":
                 upgrade_pos = (self.rect.x, self.rect.centery)
+                upgrade_realpos = (self.hitbox.x, self.hitbox.centery)
         
         # create the correct upgrade slot type
         if upgrade_name is None:
@@ -194,7 +199,8 @@ class Room(pg.sprite.Group):
         elif upgrade_name in textures["thrusters"]:
             self.upgrade_slots[self._upgrade_index] = Thruster(upgrade_pos, orientation, upgrade_name, self)
         elif upgrade_name in textures["shield_upgrades"]:
-            new_shield = Shield(upgrade_pos, (0,0), orientation, upgrade_name, self, self.parent.get_corners())
+            texture = textures["shields"]["enemyShield"]
+            new_shield = Shield(upgrade_pos, upgrade_realpos, orientation, upgrade_name, texture, self, self.parent.get_corners())
             self.upgrade_slots[self._upgrade_index] = new_shield
             self.parent.installed_shield = new_shield
         else: # invalid upgrade name
