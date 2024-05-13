@@ -4,7 +4,7 @@ import pygame as pg
 
 if TYPE_CHECKING:
     from modules.enemy import Enemy
-    from modules.spaceship.upgrades import Weapon
+    from modules.spaceship.upgrades import *
 from modules.player import Player
 from modules.spaceship.room import Room
 from modules.resources import textures, get_font, button_palletes, systems
@@ -542,7 +542,42 @@ class ResourceIcon():
         screen.blit(label, label_center)
 
         return
-    
+
+class ShieldBar():
+    # public
+    enemy_bar: bool
+
+    # private
+    _shield: Shield
+
+    def __init__(self, pos: tuple[int, int], shield_upgrade: Shield, enemy_bar: bool = False) -> None:
+        self.pos = pos
+        self._shield = shield_upgrade
+        self.enemy_bar = enemy_bar
+        
+        if not enemy_bar:
+            self._ui_top_shields_bar = textures["ui_top_shields_{state}".format(state="on" if self._shield.max_charge>0 else "off")]
+
+        return
+
+    def draw(self, screen: pg.Surface) -> None:
+        if hasattr(self, "_ui_top_shields_bar"):
+            screen.blit(self._ui_top_shields_bar, self.pos)
+        
+        for index in range(self._shield.max_charge):
+            # TODO: draw active shield icons
+
+            pass
+        return
+
+    def update(self) -> None:
+        shield_charge = self._shield.charge
+        
+        if self.enemy_bar:
+            pass
+        else:
+            pass
+
 class Button():
     def __init__(self,
                  player: Player,

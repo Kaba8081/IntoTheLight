@@ -266,9 +266,9 @@ class Shield(UpgradeSlot):
         self.realpos = realpos
 
         # shield logic
-        self.charge = 1
-        self.curr_charge_percent = 0.0
-        self.max_charge = 1
+        self.charge = 0
+        self.curr_charge = 0.0
+        self.max_charge = 0
         self.charge_time = 100
         self.charge_change = 25
 
@@ -290,20 +290,20 @@ class Shield(UpgradeSlot):
     def draw(self, screen: pg.Surface) -> None:
         if hasattr(self, "shield_sprite") and self.charge > 0:
             screen.blit(self.shield_sprite.image, self.shield_sprite.rect)
-        else:
-            print("shield_upgrade has no shield_image attribute!")
 
-    def update(self, dt: float) -> None:
+    def update(self, dt: float, max_charge: int) -> None:
         """
         Update the shield's charge.
         :param dt: float - the time since the last frame
         """
+        self.max_charge = max_charge
+        
         if self.charge < self.max_charge:
-            self.curr_charge_percent = (self.curr_charge_percent + dt * self.charge_change / 100)
+            self.curr_charge += dt * self.charge_change
 
-            if self.curr_charge_percent >= 1:
+            if self.curr_charge >= self.charge_time:
                 self.charge += 1
-                self.curr_charge_percent = 0
+                self.curr_charge = 0
 
         return
 

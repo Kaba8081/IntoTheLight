@@ -104,6 +104,8 @@ ship_layouts = {
         {
             "pos": (0, 0),
             "tiles": [[1,1],[1,1],[1,1]],
+            "role": "shields",
+            "level": 1,
             "upgrade_slots":{
                 "thruster": {"left": None}
             }
@@ -208,7 +210,7 @@ ship_layouts = {
             },
             {
                 "pos": (6, 1),
-                "tiles": [[1,1],[1,1]],
+                "tiles": [[1,1],[1,1]]
             },
             {
                 "pos": (6, 3),
@@ -281,6 +283,18 @@ texture_config = {
         "basePath": path.join(_FILEPATH, "ui_icons"),
         "extension": ".png",
         "prefix": "icon_"
+    },
+    "ui_top_shields":{
+        "basePath": path.join(_FILEPATH, "statusUI"),
+        "extenson": ".png",
+        "prefix": "top_",
+        "suffix": {"on":"_on", "off":"_off", "purple": "_purple", "red": "_red"}
+    },
+    "ui_top_shields_icons": {
+        "basePath": path.join(_FILEPATH, "statusUI"),
+        "extension": ".png",
+        "prefix": "top_",
+        "suffix": {"on":"_on", "off":"_off", "hacked":"_hacked", "hacked_charged":"_hacked_charged"}
     }
 }
 
@@ -439,3 +453,12 @@ def load_textures(): # use this function after initializing the display
     
     textures["shields"] = dict()
     textures["shields"]["enemyShield"] = load_ftl_image("enemy_shields", basePath=path.join(_FILEPATH, "ship"))
+
+    # ui top shields
+    textures["ui_top_shields"] = dict()
+    for suffix in texture_config["ui_top_shields"]["suffix"]:
+        textures["ui_top_shields"][suffix] = load_ftl_image("shields4", suffix=texture_config["ui_top_shields"]["suffix"][suffix], basePath=texture_config["ui_top_shields"]["basePath"], prefix=texture_config["ui_top_shields"]["prefix"], extension=".png")
+
+    textures["ui_top_shields_icons"] = dict()
+    for suffix in texture_config["ui_top_shields_icons"]["suffix"]:
+        textures["ui_top_shields_icons"][suffix] = load_ftl_image("shieldsquare1", suffix=texture_config["ui_top_shields_icons"]["suffix"][suffix], extension=".png", basePath=texture_config["ui_top_shields_icons"]["basePath"], prefix=texture_config["ui_top_shields_icons"]["prefix"])    

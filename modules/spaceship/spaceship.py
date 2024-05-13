@@ -157,7 +157,8 @@ class Spaceship:
                 projectile.update(dt)
 
         if self.installed_shield is not None:
-            self.installed_shield.update(dt)
+            max_shields = self.installed_systems["shields"].power // 2 if "shields" in self.installed_systems.keys() else 0
+            self.installed_shield.update(dt, max_shields)
 
     def get_corners(self) -> tuple[tuple[int, int], tuple[int, int]]:
         """
