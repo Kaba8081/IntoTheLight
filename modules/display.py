@@ -84,25 +84,26 @@ class Display:
         """
         Update the display.
         """
-        self._enemy_screen = pg.Surface((
-            self._screen.get_height(),
-            self._screen.get_width() * (1-self.ratio)
-            ))
-        
         self._player.draw(self._player_screen)
-        self.enemy_ship.draw(self._enemy_screen)
 
-        self._player.draw_projectiles(self._player_screen, self._enemy_screen)
-        self.enemy_ship.draw_projectiles(self._enemy_screen, self._player_screen)
-
+        if self.enemy_ship is not None and self._interface.enemy_ui_active:
+            self._enemy_screen = pg.Surface((
+                self._screen.get_height(),
+                self._screen.get_width() * (1-self.ratio)
+                ))
+            self.enemy_ship.draw(self._enemy_screen)
+            self._player.draw_projectiles(self._player_screen, self._enemy_screen)
+            self.enemy_ship.draw_projectiles(self._enemy_screen, self._player_screen)
+            self._enemy_screen = pg.transform.rotate(self._enemy_screen,90)
+            
         self._interface.update()
-        self._enemy_screen = pg.transform.rotate(self._enemy_screen,90)
 
     def draw(self) -> None:
         """
         Draw's the display contents on screen.
         """
-        self._interface.draw_enemy_interface(self._enemy_screen)
+        if self.enemy_ship is not None and self._interface.enemy_ui_active:
+            self._interface.draw_enemy_interface(self._enemy_screen)
 
         self._screen.blit(self._player_screen, (0,0))
         self._screen.blit(self._enemy_screen, (self._screen.get_width() * self.ratio, 0))
@@ -149,4 +150,4 @@ class Display:
             self._interface = None
         else:
             self._enemy = value
-            self._interface.enemy = value
+            self._interface.enemy_ship = value

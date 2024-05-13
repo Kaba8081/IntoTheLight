@@ -238,7 +238,6 @@ class Shield(UpgradeSlot):
     hitbox: pg.Rect
 
     charge: int
-    curr_charge_percent: float
     max_charge: int
     charge_time: int
     charge_change: int

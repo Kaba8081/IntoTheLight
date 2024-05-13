@@ -68,6 +68,8 @@ def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> U
                     name=sprite_name
                 ))).convert_alpha()
                 texture_dict[sprite_name].image.set_colorkey(colorkey, pg.RLEACCEL)
+                if "size" in kwargs.keys():
+                    texture_dict[sprite_name].image = pg.transform.scale(texture_dict[sprite_name].image, kwargs["size"])
                 texture_dict[sprite_name].rect = texture_dict[sprite_name].image.get_rect()
 
             return texture_dict
@@ -80,6 +82,8 @@ def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> U
                 name=name
             ))).convert_alpha()
             result.image.set_colorkey(colorkey, pg.RLEACCEL)
+            if "size" in kwargs.keys():
+                result.image = pg.transform.scale(result.image, kwargs["size"])
             result.rect = result.image.get_rect()
 
             return result
@@ -105,7 +109,7 @@ ship_layouts = {
             "pos": (0, 0),
             "tiles": [[1,1],[1,1],[1,1]],
             "role": "shields",
-            "level": 1,
+            "level": 2,
             "upgrade_slots":{
                 "thruster": {"left": None}
             }
@@ -458,6 +462,7 @@ def load_textures(): # use this function after initializing the display
     textures["ui_top_shields"] = dict()
     for suffix in texture_config["ui_top_shields"]["suffix"]:
         textures["ui_top_shields"][suffix] = load_ftl_image("shields4", suffix=texture_config["ui_top_shields"]["suffix"][suffix], basePath=texture_config["ui_top_shields"]["basePath"], prefix=texture_config["ui_top_shields"]["prefix"], extension=".png")
+    textures["ui_top_shields"]["energy_shield_box"] = load_ftl_image("energy_shield_box", extension=".png", basePath=texture_config["ui_top_shields"]["basePath"], size=(50,10))
 
     textures["ui_top_shields_icons"] = dict()
     for suffix in texture_config["ui_top_shields_icons"]["suffix"]:

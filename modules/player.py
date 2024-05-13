@@ -58,6 +58,7 @@ class Player(Spaceship):
 
     def key_pressed(self, key: pg.key) -> None:
         """Handles player input from the keyboard."""
+        # TODO: definetly can be improved
 
         num_of_weapons = len(self.weapons)
 
@@ -66,21 +67,25 @@ class Player(Spaceship):
                 self.selected_weapon = self.weapons[0] if self.activate_weapon(self.weapons[0]) else None
             else:
                 self.selected_weapon = self.weapons[0]
+                self.selected_weapon.target = None
         if key == keybinds["select_weapon2"] and num_of_weapons >= 2:
             if self.weapons[1].state == "disabled": # activate the weapon if it's disabled
                 self.selected_weapon = self.weapons[1] if self.activate_weapon(self.weapons[1]) else None
             else:
                 self.selected_weapon = self.weapons[1]
+                self.selected_weapon.target = None
         if key == keybinds["select_weapon3"] and num_of_weapons >= 3:
             if self.weapons[2].state == "disabled": # activate the weapon if it's disabled
                 self.selected_weapon = self.weapons[2] if self.activate_weapon(self.weapons[2]) else None
             else:
                 self.selected_weapon = self.weapons[2]
+                self.selected_weapon.target = None
         if key == keybinds["select_weapon4"] and num_of_weapons >= 4:
             if self.weapons[3].state == "disabled": # activate the weapon if it's disabled
                 self.selected_weapon = self.weapons[3] if self.activate_weapon(self.weapons[3]) else None
             else:
                 self.selected_weapon = self.weapons[3]
+                self.selected_weapon.target = None
         
         return
     
