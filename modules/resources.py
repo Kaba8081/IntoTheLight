@@ -466,4 +466,19 @@ def load_textures(): # use this function after initializing the display
 
     textures["ui_top_shields_icons"] = dict()
     for suffix in texture_config["ui_top_shields_icons"]["suffix"]:
-        textures["ui_top_shields_icons"][suffix] = load_ftl_image("shieldsquare1", suffix=texture_config["ui_top_shields_icons"]["suffix"][suffix], extension=".png", basePath=texture_config["ui_top_shields_icons"]["basePath"], prefix=texture_config["ui_top_shields_icons"]["prefix"])    
+        textures["ui_top_shields_icons"][suffix] = load_ftl_image("shieldsquare1", suffix=texture_config["ui_top_shields_icons"]["suffix"][suffix], extension=".png", basePath=texture_config["ui_top_shields_icons"]["basePath"], prefix=texture_config["ui_top_shields_icons"]["prefix"])
+
+    # ui hull bar
+    textures["ui_hull_bar"] = dict()
+    textures["ui_hull_bar"]["top_hull_white"] = load_ftl_image("top_hull", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
+    textures["ui_hull_bar"]["top_hull_red"] = load_ftl_image("top_hull_red", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
+    textures["ui_hull_bar"]["top_hull_bar_mask"] = dict()
+    colors = {"red": (255,0,0), "yellow": (255, 152, 48), "green": (100, 255, 98)}
+    textures["ui_hull_bar"]["top_hull_bar_mask"]["white"] = load_ftl_image("top_hull_bar_mask", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
+    for color in colors.keys():
+        textures["ui_hull_bar"]["top_hull_bar_mask"][color] = load_ftl_image("top_hull_bar_mask", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
+        
+        bildPixel = pg.surfarray.pixels3d(textures["ui_hull_bar"]["top_hull_bar_mask"][color].image)
+        for i in range(3):
+            bildPixel[bildPixel[:,:,i] == 255, i] = colors[color][i]
+        del bildPixel

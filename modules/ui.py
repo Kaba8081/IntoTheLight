@@ -23,8 +23,8 @@ class InterfaceController(pg.sprite.Group):
 
     _enemy: Enemy
 
-    _power_color_on = (100, 255, 98)
-    _power_color_off = (255, 255, 255)
+    _color_on = (100, 255, 98)
+    _color_off = (255, 255, 255)
     _power_bar_size = (32, 8)
     _power_bar_gap = 10
     _power_system_bar_size = (24, 8)
@@ -49,6 +49,9 @@ class InterfaceController(pg.sprite.Group):
     _status_bar_size: tuple[int, int]
     _status_bar_coords: tuple[int, int]
     _status_bar_ratio: float
+    _status_bar_player_prev_hp: int
+    _status_hull_mask = pg.Surface
+    _status_hull_colors = ["red", "yellow", "green"]
     _resource_icons: list[ResourceIcon]
 
     _enemy_hud_surface: pg.Surface
@@ -137,6 +140,9 @@ class InterfaceController(pg.sprite.Group):
             )
         
         # player's status bar
+        self._status_bar_player_prev_hp = 30
+        self._status_hull_mask = textures["ui_hull_bar"]["top_hull_bar_mask"]["green"].image.copy()
+        self._status_hull_mask.set_colorkey((0,0,0), pg.RLEACCEL)
         self._status_bar_ratio = ratio - 0.1
         self._status_bar_coords = (32, 32)
         self._status_bar_size = (self.resolution[0] * self._status_bar_ratio, 128)
@@ -171,9 +177,9 @@ class InterfaceController(pg.sprite.Group):
         coords = (16, self.resolution[1]-32)
         for i in range(0, self._player_power_max):
             if i < curr_power: # draw full bar
-                pg.draw.rect(self.surface, self._power_color_on, (coords[0], coords[1] - i * self._power_bar_gap, self._power_bar_size[0], self._power_bar_size[1]))
+                pg.draw.rect(self.surface, self._color_on, (coords[0], coords[1] - i * self._power_bar_gap, self._power_bar_size[0], self._power_bar_size[1]))
             else: # draw empty bar
-                pg.draw.rect(self.surface, self._power_color_off, (coords[0], coords[1] - i * self._power_bar_gap, self._power_bar_size[0], self._power_bar_size[1]), 1)
+                pg.draw.rect(self.surface, self._color_off, (coords[0], coords[1] - i * self._power_bar_gap, self._power_bar_size[0], self._power_bar_size[1]), 1)
 
         # draw every system's power bar
         for index, system_name in enumerate(self._player.installed_systems):
@@ -185,9 +191,9 @@ class InterfaceController(pg.sprite.Group):
             coords = (coords[0] + (self._power_system_bar_icon_size[0]//2 - self._power_system_bar_size[0]//2), coords[1] - (self._power_system_bar_icon_size[1]//2))
             for power_level in range(0, system.max_power):
                 if  power_level < system_power: # draw full bar
-                    pg.draw.rect(self.surface, self._power_color_on, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]))
+                    pg.draw.rect(self.surface, self._color_on, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]))
                 else: # draw empty bar
-                    pg.draw.rect(self.surface, self._power_color_off, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]), 2)
+                    pg.draw.rect(self.surface, self._color_off, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]), 2)
         return
     
     def _draw_weapons(self) -> None:
@@ -223,12 +229,19 @@ class InterfaceController(pg.sprite.Group):
     
     def _draw_status_bar(self) -> None:
         self._status_surface.fill((0,0,0))
+        
+        self._status_surface.blit(textures["ui_hull_bar"][f"top_hull_{'white' if self._player.hull_hp > 10 else 'red'}"].image, (0,16))
 
-        color_on = (106, 190, 48)
-
-        # draw hull hp
-        for i in range(self._player.hull_hp):
-            pg.draw.rect(self._status_surface, color_on, (i*12, 16, 8, 16))
+        if self._status_bar_player_prev_hp != self._player.hull_hp: # update hull bar mask
+            width = (30 - self._player.hull_hp)*12
+            color_index = self._status_hull_colors[self._player.hull_hp // 10]
+            self._status_hull_mask = textures["ui_hull_bar"]["top_hull_bar_mask"][color_index].image.copy()
+            black_surface = pg.Surface((width, self._status_hull_mask.get_height()), pg.SRCALPHA)
+            black_surface.fill((0,0,0))
+            self._status_hull_mask.blit(black_surface, (self._status_hull_mask.get_width() - width,0))
+            self._status_hull_mask.set_colorkey((0,0,0), pg.RLEACCEL)
+            
+        self._status_surface.blit(self._status_hull_mask, (10, 16))
         
         # draw resources
         for icon in self._resource_icons:
@@ -236,6 +249,7 @@ class InterfaceController(pg.sprite.Group):
 
         self.surface.blit(self._status_surface, self._status_bar_coords)
 
+        self._status_bar_player_prev_hp = self._player.hull_hp
         return
 
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
@@ -317,7 +331,7 @@ class InterfaceController(pg.sprite.Group):
         self._enemy_hud_surface.blit(self._enemy_hull_label, coords)
         coords[1] += self._enemy_hull_label.get_height() + 16
         for i in range(self.enemy_ship.hull_hp):
-            pg.draw.rect(self._enemy_hud_surface, self._power_color_on, (coords[0] + i*12, coords[1], 8, 16))
+            pg.draw.rect(self._enemy_hud_surface, self._color_on, (coords[0] + i*12, coords[1], 8, 16))
 
         # drawing shield label and icons
         coords[1] += 32
