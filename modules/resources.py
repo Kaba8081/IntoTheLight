@@ -6,18 +6,22 @@ import json
 _FILEPATH = path.dirname(path.realpath(__file__))
 _FILEPATH = path.abspath(path.join(_FILEPATH, ".."))
 _CONTENT = path.join(_FILEPATH, "content")
+_FONTS = path.join(_CONTENT, "fonts")
 _FILEPATH = path.join(_CONTENT, "img")
 
 pg.font.init()
 
 def get_font(font: str ="arial", size=16, bold=False) -> pg.font.Font:
     """Return a pygame.font.Font object with the specified font, size and boldness."""
-
+    if font == "arial":
+        return pg.font.Font(path.join(_FONTS, "arial.ttf"), size)
     try: 
-        return pg.font.Font(path.join(_CONTENT, f"{font}.ttf"), size)
+        res_font = pg.font.Font(path.join(_FONTS, f"{font}.font"), size)
     except:
         print(f"Font {font} was not found in the local dir! Using default system font...")
-        return pg.font.SysFont("arial", size, bold=bold)
+        res_font = pg.font.SysFont("arial", size, bold=bold)
+    print(res_font)
+    return res_font
 
 def load_config() -> dict:
     with open("config.json", "r", encoding="utf-8-sig") as file:
@@ -288,6 +292,12 @@ texture_config = {
         "extension": ".png",
         "prefix": "icon_"
     },
+    "ui_top_resource_icons": {
+        "basePath": path.join(_FILEPATH, "statusUI"),
+        "extension": ".png",
+        "prefix": "top_",
+        "suffix": {"white": "_on", "red": "_on_red"}
+    },
     "ui_top_shields":{
         "basePath": path.join(_FILEPATH, "statusUI"),
         "extenson": ".png",
@@ -457,6 +467,17 @@ def load_textures(): # use this function after initializing the display
     
     textures["shields"] = dict()
     textures["shields"]["enemyShield"] = load_ftl_image("enemy_shields", basePath=path.join(_FILEPATH, "ship"))
+
+    # ui top resource icons
+    textures["ui_top_resource_icons"] = dict()
+    for resource in ["fuel", "missiles", "drones"]:
+        textures["ui_top_resource_icons"][resource] = dict()
+        for suffix in texture_config["ui_top_resource_icons"]["suffix"]:
+            textures["ui_top_resource_icons"][resource][suffix] = load_ftl_image(resource, suffix=texture_config["ui_top_resource_icons"]["suffix"][suffix], basePath=texture_config["ui_top_resource_icons"]["basePath"], prefix=texture_config["ui_top_resource_icons"]["prefix"], extension=".png")
+    # scrap icons are named differently for some reason
+    textures["ui_top_resource_icons"]["scrap"] = dict()
+    textures["ui_top_resource_icons"]["scrap"]["white"] = load_ftl_image("scrap", extension=".png", basePath=texture_config["ui_top_resource_icons"]["basePath"], prefix=texture_config["ui_top_resource_icons"]["prefix"])
+    textures["ui_top_resource_icons"]["scrap"]["red"] = load_ftl_image("scrap_red", extension=".png", basePath=texture_config["ui_top_resource_icons"]["basePath"], prefix=texture_config["ui_top_resource_icons"]["prefix"])
 
     # ui top shields
     textures["ui_top_shields"] = dict()

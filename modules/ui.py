@@ -50,8 +50,9 @@ class InterfaceController(pg.sprite.Group):
     _status_bar_coords: tuple[int, int]
     _status_bar_ratio: float
     _status_bar_player_prev_hp: int
-    _status_hull_mask = pg.Surface
-    _status_hull_colors = ["red", "yellow", "green"]
+    _status_bar_enemy_prev_hp: int
+    _status_bar_player_hull_mask = pg.Surface
+    _status_bar_enemy_hull_mask = pg.Surface
     _resource_icons: list[ResourceIcon]
 
     _enemy_hud_surface: pg.Surface
@@ -141,8 +142,9 @@ class InterfaceController(pg.sprite.Group):
         
         # player's status bar
         self._status_bar_player_prev_hp = 30
-        self._status_hull_mask = textures["ui_hull_bar"]["top_hull_bar_mask"]["green"].image.copy()
-        self._status_hull_mask.set_colorkey((0,0,0), pg.RLEACCEL)
+        self._status_bar_enemy_prev_hp = 0
+        self._status_bar_player_hull_mask = textures["ui_hull_bar"]["top_hull_bar_mask"]["green"].image.copy()
+        self._status_bar_enemy_hull_mask = textures["ui_hull_bar"]["top_hull_bar_mask"]["green"].image.copy()
         self._status_bar_ratio = ratio - 0.1
         self._status_bar_coords = (32, 32)
         self._status_bar_size = (self.resolution[0] * self._status_bar_ratio, 128)
@@ -155,11 +157,10 @@ class InterfaceController(pg.sprite.Group):
                 ResourceIcon(
                     self._player,
                     (128 + 76 * i, 64),
-                    (64, 32),
                     roles[i]
                     )
                 )
-        self._resource_icons.append(ResourceIcon(self._player, (384, 0), (128, 48), "scrap", 24, 42))
+        self._resource_icons.append(ResourceIcon(self._player, (384, 0), "scrap", 24))
 
         # Enemy hud elements
         self._enemy_hud_surface = pg.Surface((self.resolution[0] - (1-ratio), 128), pg.SRCALPHA)
@@ -230,18 +231,9 @@ class InterfaceController(pg.sprite.Group):
     def _draw_status_bar(self) -> None:
         self._status_surface.fill((0,0,0))
         
-        self._status_surface.blit(textures["ui_hull_bar"][f"top_hull_{'white' if self._player.hull_hp > 10 else 'red'}"].image, (0,16))
-
-        if self._status_bar_player_prev_hp != self._player.hull_hp: # update hull bar mask
-            width = (30 - self._player.hull_hp)*12
-            color_index = self._status_hull_colors[self._player.hull_hp // 10]
-            self._status_hull_mask = textures["ui_hull_bar"]["top_hull_bar_mask"][color_index].image.copy()
-            black_surface = pg.Surface((width, self._status_hull_mask.get_height()), pg.SRCALPHA)
-            black_surface.fill((0,0,0))
-            self._status_hull_mask.blit(black_surface, (self._status_hull_mask.get_width() - width,0))
-            self._status_hull_mask.set_colorkey((0,0,0), pg.RLEACCEL)
-            
-        self._status_surface.blit(self._status_hull_mask, (10, 16))
+        self._status_surface.blit(textures["ui_hull_bar"][f"top_hull_{'white' if self._player.hull_hp > 10 else 'red'}"].image, (0,0))
+        self._status_bar_player_hull_mask, self._status_bar_player_prev_hp = self.update_hull_bar(self._player.hull_hp, self._status_bar_player_prev_hp, self._status_bar_player_hull_mask)
+        self._status_surface.blit(self._status_bar_player_hull_mask, (10, 0))
         
         # draw resources
         for icon in self._resource_icons:
@@ -249,7 +241,6 @@ class InterfaceController(pg.sprite.Group):
 
         self.surface.blit(self._status_surface, self._status_bar_coords)
 
-        self._status_bar_player_prev_hp = self._player.hull_hp
         return
 
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[int, int, int]) -> None:
@@ -326,15 +317,16 @@ class InterfaceController(pg.sprite.Group):
         if self.enemy is None:
             return
 
-        coords = [32,32]
+        coords = [32,16]
         # drawing hull label and icons
         self._enemy_hud_surface.blit(self._enemy_hull_label, coords)
-        coords[1] += self._enemy_hull_label.get_height() + 16
-        for i in range(self.enemy_ship.hull_hp):
-            pg.draw.rect(self._enemy_hud_surface, self._color_on, (coords[0] + i*12, coords[1], 8, 16))
+        self._status_bar_enemy_hull_mask, self._status_bar_enemy_prev_hp = self.update_hull_bar(self.enemy_ship.hull_hp, self._status_bar_enemy_prev_hp, self._status_bar_enemy_hull_mask, True)
+        self._status_bar_enemy_hull_mask.convert_alpha()
+        self._status_bar_enemy_hull_mask.set_colorkey((0,0,0), pg.RLEACCEL)
+        screen.blit(self._status_bar_enemy_hull_mask, (coords[0], coords[1] - 8))
 
         # drawing shield label and icons
-        coords[1] += 32
+        coords[1] += 40
         self._enemy_hud_surface.blit(self._enemy_shields_label, coords)
         coords[1] += self._enemy_shields_label.get_height() - 4
         self._enemy_shields_bar.draw(self._enemy_hud_surface, coords)
@@ -351,6 +343,29 @@ class InterfaceController(pg.sprite.Group):
         self._enemy_hud_surface.fill((255,0,0))
         screen.blit(self._enemy_shields_label, (self.resolution[0] * self.ratio, 0))
         screen.blit(self.surface, (0,0))
+
+    @staticmethod
+    def update_hull_bar(hull_hp: int, prev_hp: int, mask: pg.Surface, enemy: bool = False) -> tuple[pg.Surface, int]:
+        """
+        Update the hull bar mask based on the player's hull hp.
+        :param hull_hp: int - the current hull hp
+        :param prev_hp: int - the previous hull hp
+        :param mask: pg.Surface - the mask to update
+        :return: tuple[pg.Surface, int] - the updated mask and the current hull hp
+        """
+        if prev_hp != hull_hp:
+            width = (30 - hull_hp)*12
+            if enemy:
+                color_index = "green"
+            else:
+                color_index = ["red", "yellow", "green"][hull_hp // 10]
+            mask = textures["ui_hull_bar"]["top_hull_bar_mask"][color_index].image.copy()
+            black_surface = pg.Surface((width, mask.get_height()), pg.SRCALPHA)
+            black_surface.fill((255,255,255,0))
+            mask.blit(black_surface, (mask.get_width() - width,0), special_flags=pg.BLEND_RGBA_MULT)
+            mask.set_colorkey((255,255,255,0), pg.RLEACCEL)
+
+        return mask, hull_hp
 
     @property
     def __weapons(self) -> list[Weapon]:
@@ -521,23 +536,16 @@ class ResourceIcon():
     # public
     role: str
     pos: tuple[int, int]
-    rect: pg.Rect
 
     # private
-    _color_normal = (255, 255, 255)
-    _color_low = (190, 75, 75)
     _player: Player
-    _icon: pg.surface.Surface
-    _icon_rect: pg.Rect
-    _font: pg.font.Font
+    _icon: pg.sprite.Sprite
 
     def __init__(self, 
                  player: Player, 
                  pos: tuple[int, int], 
-                 size: tuple[int, int], 
                  role: Literal["fuel", "missiles", "drone_parts", "scrap"],
                  font_size: int = 16,
-                 icon_size: int = 24
                  ) -> None:
         """
         :param player: Player - the player object
@@ -546,14 +554,15 @@ class ResourceIcon():
         :param role: str - the role of the resource icon
         :param font_size: int - the font size of the resource count
         """
-        self._player = player
-        self._icon = textures["ui_icons"][f"{role}"]
-        self._icon_rect = self._icon.rect
-        self._font = get_font("arial", font_size)
-
         self.role = role
         self.pos = pos
-        self.rect = pg.Rect(pos, size)
+
+        self._player = player
+        self._icon = textures["ui_top_resource_icons"][self.role]
+        self._icon["white"].rect.topleft = pos
+        self._icon["red"].rect.topleft = pos
+        self._font = get_font("num_font", font_size)
+
         return 
     
     def draw(self, screen: pg.surface.Surface) -> None:
@@ -573,16 +582,16 @@ class ResourceIcon():
             case "scrap":
                 resource_count = self._player.scrap
         
-        curr_color = self._color_normal if resource_count > 8 else self._color_low
-        # draw the outline box
-        pg.draw.rect(screen, curr_color, self.rect, 4)
+        curr_color = "white" if resource_count > 8 else "red"
+        curr_text_color = (255,255,255) if resource_count > 8 else (255,0,0)
 
         # draw the icon
-        screen.blit(self._icon.image, (self.rect.centerx - self._icon_rect.width, self.rect.centery - self._icon_rect.height // 2))
+        screen.blit(self._icon[curr_color].image, self._icon[curr_color].rect.topleft)
 
         # draw the resource count
-        label = self._font.render(str(resource_count), True, curr_color)
-        label_center = (self.rect.centerx, self.rect.centery - label.get_height() // 2)
+        print(str(resource_count), True, curr_text_color)
+        label = self._font.render(str(resource_count), True, curr_text_color)
+        label_center = (self._icon[curr_color].rect.centerx, self._icon[curr_color].rect.centery - label.get_height() // 2)
         
         screen.blit(label, label_center)
 

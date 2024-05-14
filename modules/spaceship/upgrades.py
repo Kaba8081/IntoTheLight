@@ -139,7 +139,9 @@ class Weapon(UpgradeSlot):
                 self.change_texture(self._anim_ready)
 
             anim_charge_len = len(self._anim_charge)
-            anim_charge_index = int(self.curr_charge // (self.charge_time // anim_charge_len + 1)) # + 1 is to account for floating point errors (it could break in the future)
+            anim_charge_index = int(self.curr_charge // (self.charge_time // anim_charge_len)) # + 1 is to account for floating point errors (it could break in the future)
+            if anim_charge_index > len(self._anim_charge) - 1:
+                anim_charge_index = len(self._anim_charge) - 1
 
             self.change_texture(self._anim_charge[anim_charge_index])
             self.curr_charge += round(self.charge_speed * dt, 2)
@@ -147,7 +149,9 @@ class Weapon(UpgradeSlot):
             self.curr_charge -= round(self.charge_speed * dt, 2) # slowly decrease the charge
 
             anim_charge_len = len(self._anim_charge)
-            anim_charge_index = int((self.curr_charge) // (self.charge_time // anim_charge_len) - 0.01) 
+            anim_charge_index = int((self.curr_charge) // (self.charge_time // anim_charge_len)) 
+            if anim_charge_index > len(self._anim_charge) - 1:
+                anim_charge_index = len(self._anim_charge) - 1
 
             self.change_texture(self._anim_charge[anim_charge_index])
 
