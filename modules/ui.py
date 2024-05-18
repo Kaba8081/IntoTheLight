@@ -51,8 +51,9 @@ class InterfaceController(pg.sprite.Group):
     _status_bar_ratio: float
     _status_bar_player_prev_hp: int
     _status_bar_enemy_prev_hp: int
-    _status_bar_player_hull_mask = pg.Surface
-    _status_bar_enemy_hull_mask = pg.Surface
+    _status_bar_player_hull_mask: pg.Surface
+    _status_bar_enemy_hull_mask: pg.Surface
+    _status_bar_shields: ShieldBar
     _resource_icons: list[ResourceIcon]
 
     _enemy_hud_surface: pg.Surface
@@ -149,6 +150,7 @@ class InterfaceController(pg.sprite.Group):
         self._status_bar_coords = (32, 32)
         self._status_bar_size = (self.resolution[0] * self._status_bar_ratio, 128)
         self._status_surface = pg.Surface(self._status_bar_size, pg.SRCALPHA)
+        self._status_bar_shields = ShieldBar(self._player.installed_shield, (0, 48))
 
         roles = ["fuel", "missiles", "drones"]
         self._resource_icons = []
@@ -239,6 +241,8 @@ class InterfaceController(pg.sprite.Group):
         for icon in self._resource_icons:
             icon.draw(self._status_surface)
 
+        self._status_bar_shields.draw(self._status_surface)
+
         self.surface.blit(self._status_surface, self._status_bar_coords)
 
         return
@@ -326,10 +330,12 @@ class InterfaceController(pg.sprite.Group):
         screen.blit(self._status_bar_enemy_hull_mask, (coords[0], coords[1] - 8))
 
         # drawing shield label and icons
-        coords[1] += 40
-        self._enemy_hud_surface.blit(self._enemy_shields_label, coords)
-        coords[1] += self._enemy_shields_label.get_height() - 4
-        self._enemy_shields_bar.draw(self._enemy_hud_surface, coords)
+        if self._enemy.installed_shield is not None:
+            coords[1] += 40
+            self._enemy_hud_surface.blit(self._enemy_shields_label, coords)
+            coords[1] += self._enemy_shields_label.get_height() - 4
+            self._enemy_shields_bar.pos = coords
+            self._enemy_shields_bar.draw(self._enemy_hud_surface)
 
         screen.blit(self._enemy_hud_surface, (0,0), special_flags=pg.BLEND_RGBA_MAX)
 
@@ -382,7 +388,7 @@ class InterfaceController(pg.sprite.Group):
     @enemy_ship.setter
     def enemy_ship(self, enemy: Enemy) -> None:
         self.enemy_ui_active = True
-        self._enemy_shields_bar = ShieldBar(enemy.installed_shield, True)
+        self._enemy_shields_bar = ShieldBar(enemy.installed_shield, (0,0), True)
         self._enemy = enemy
 
     @enemy_ship.deleter
@@ -430,9 +436,9 @@ class PowerIcon(pg.sprite.Sprite):
             return
 
         if mouse_clicked[0]: # add power if possible
-            self._room_obj.power += 1
+            self._room_obj.power += 2 if self._room_obj.role == "shields" else 1
         elif mouse_clicked[2]: # remove power if possible
-            self._room_obj.power -= 1
+            self._room_obj.power -= 2 if self._room_obj.role == "shields" else 1
 
         return
     
@@ -589,7 +595,6 @@ class ResourceIcon():
         screen.blit(self._icon[curr_color].image, self._icon[curr_color].rect.topleft)
 
         # draw the resource count
-        print(str(resource_count), True, curr_text_color)
         label = self._font.render(str(resource_count), True, curr_text_color)
         label_center = (self._icon[curr_color].rect.centerx, self._icon[curr_color].rect.centery - label.get_height() // 2)
         
@@ -601,46 +606,60 @@ class ShieldBar():
     # public
     enemy_bar: bool
     shield_progres_color = (27, 132, 255)
+    pos: tuple[int, int]
 
     # private
     _shield: Shield
+    _progress_bar: pg.sprite.Sprite
 
-    def __init__(self, shield_upgrade: Shield, enemy_bar: bool = False) -> None:
+    def __init__(self, shield_upgrade: Shield, pos: tuple[int, int], enemy_bar: bool = False) -> None:
         self._shield = shield_upgrade
         self.enemy_bar = enemy_bar
+        self.pos = pos
         
+        self._progress_bar = pg.sprite.Sprite()
+
         if not enemy_bar:
-            self._ui_top_shields_bar = textures["ui_top_shields"]["on" if self._shield.max_charge>0 else "off"]
+            self._ui_top_shields_bar = pg.sprite.Sprite()
+            self._ui_top_shields_bar.image = textures["ui_top_shields"]["on" if self._shield.max_charge>0 else "off"].image.copy()
+            self._ui_top_shields_bar.rect = self._ui_top_shields_bar.image.get_rect(topleft=pos)
+
+            self._progress_bar.image = pg.transform.scale(textures["ui_top_shields"]["energy_shield_box"].image.copy(), (99,12))
+            self._progress_bar.rect = self._progress_bar.image.get_rect(topleft=(pos[0]+29, pos[1]+33))
+        else:
+            self._progress_bar.image = textures["ui_top_shields"]["energy_shield_box"].image.copy()
+            self._progress_bar.rect = self._progress_bar.image.get_rect(topleft=pos)
+        
 
         return
 
-    def draw(self, screen: pg.Surface, pos: tuple[int, int]) -> None:
+    def draw(self, screen: pg.Surface) -> None:
         if hasattr(self, "_ui_top_shields_bar"):
-            screen.blit(self._ui_top_shields_bar.image, self._ui_top_shields_bar.image.get_rect(topleft=pos))
+            self._ui_top_shields_bar.image = textures["ui_top_shields"]["on" if self._shield.max_charge>0 else "off"].image.copy()
+            screen.blit(self._ui_top_shields_bar.image, self._ui_top_shields_bar.rect)
+        if self._shield is None:
+            return
+
+        if not self.enemy_bar and self._shield is not None: # player's shield bar
+            coords = [self.pos[0]+30, self.pos[1]+4]
+        elif self.enemy_bar:
+            coords = [self.pos[0]-4, self.pos[1]]
+            self._progress_bar.rect.topleft = (self.pos[0], self.pos[1]+32)
+
         
-        coords = [pos[0]-4, pos[1]]
         for index in range(self._shield.max_charge):
             if index < self._shield.charge:
                 screen.blit(textures["ui_top_shields_icons"]["on"].image, textures["ui_top_shields_icons"]["on"].image.get_rect(topleft=coords))
             else:
                 screen.blit(textures["ui_top_shields_icons"]["off"].image, textures["ui_top_shields_icons"]["off"].image.get_rect(topleft=coords))
-            coords[0] += textures["ui_top_shields_icons"]["on"].image.get_width() - 4
+            coords[0] += textures["ui_top_shields_icons"]["on"].image.get_width() - 7
         
         if self._shield.curr_charge > 0:
             percent = self._shield.curr_charge / self._shield.charge_time
-            progress_bar = textures["ui_top_shields"]["energy_shield_box"]
-            pg.draw.rect(screen, self.shield_progres_color, (pos[0], pos[1] + 32, progress_bar.image.get_width() * percent, progress_bar.image.get_height()))
-            screen.blit(progress_bar.image, progress_bar.image.get_rect(topleft=(pos[0], pos[1] + 32)))
+            pg.draw.rect(screen, self.shield_progres_color, (self._progress_bar.rect.left, self._progress_bar.rect.top, self._progress_bar.image.get_width() * percent, self._progress_bar.image.get_height()))
+            screen.blit(self._progress_bar.image, self._progress_bar.rect.topleft)
         
         return
-    
-    def update(self) -> None:
-        shield_charge = self._shield.charge
-        
-        if self.enemy_bar:
-            pass
-        else:
-            pass
 
 class Button():
     def __init__(self,

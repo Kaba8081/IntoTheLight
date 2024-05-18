@@ -239,7 +239,6 @@ class Shield(UpgradeSlot):
     shield_image: pg.Surface
     shield_sprite: pg.sprite.Sprite
     shield_mask: pg.mask.Mask
-    hitbox: pg.Rect
 
     charge: int
     max_charge: int
@@ -287,12 +286,15 @@ class Shield(UpgradeSlot):
         
         self.shield_sprite.image = pg.transform.scale(self.shield_sprite.image, (width+144, height+144))
         self.shield_sprite.rect = self.shield_sprite.image.get_rect(center=ship_center)
-        self.shield_mask = pg.mask.from_surface(self.shield_sprite.image)
-        self.hitbox = pg.Rect(self.realpos, (width, height))
+        self.shield_mask = pg.mask.from_surface(self.shield_sprite.image, threshold=0)
+        # TODO: above funtion's threshold parameter creates a mask that doesn't always match the sprite's alpha channel
         
     def draw(self, screen: pg.Surface) -> None:
         if hasattr(self, "shield_sprite") and self.charge > 0:
             screen.blit(self.shield_sprite.image, self.shield_sprite.rect)
+
+            # uncomment to draw the shield's mask
+            #screen.blit(self.shield_mask.to_surface(setcolor=(0,255,0,125,)), self.shield_sprite.rect.topleft)
 
     def update(self, dt: float, max_charge: int) -> None:
         """
@@ -307,6 +309,8 @@ class Shield(UpgradeSlot):
             if self.curr_charge >= self.charge_time:
                 self.charge += 1
                 self.curr_charge = 0
+        elif self.charge > self.max_charge:
+            self.charge = self.max_charge
 
         return
 

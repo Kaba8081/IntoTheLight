@@ -75,7 +75,9 @@ class Projectile():
                 # TODO: Sometimes the normalized pos is in the negatives (outside of shield.mask.get_size() range)
                 normalized_pos = (self._vector2d_end[0] - shield.pos[0], self._vector2d_end[1] - shield.pos[1])
                 shield_mask_size = shield.shield_mask.get_size()
-                if normalized_pos[0] <= shield_mask_size[0] and normalized_pos[1] <= shield_mask_size[1] and shield.shield_mask.get_at(normalized_pos) == 1:
+                if normalized_pos[0] < 0 or normalized_pos[1] < 0:
+                    return
+                elif normalized_pos[0] <= shield_mask_size[0] and normalized_pos[1] <= shield_mask_size[1] and shield.shield_mask.get_at(normalized_pos) == 1:
                     self.hit_target = True
                     shield.take_damage(self)
                     return

@@ -199,8 +199,11 @@ class Room(pg.sprite.Group):
         elif upgrade_name in textures["thrusters"]:
             self.upgrade_slots[self._upgrade_index] = Thruster(upgrade_pos, orientation, upgrade_name, self)
         elif upgrade_name in textures["shield_upgrades"]:
-            texture = textures["shields"]["enemyShield"]
-            new_shield = Shield(upgrade_pos, upgrade_realpos, orientation, upgrade_name, texture, self, self.parent.get_corners())
+            sprite = pg.sprite.Sprite()
+            sprite.image = textures["shields"]["enemyShield"].image.copy()
+            sprite.rect = sprite.image.get_rect()
+
+            new_shield = Shield(upgrade_pos, upgrade_realpos, orientation, upgrade_name, sprite, self, self.parent.get_corners())
             self.upgrade_slots[self._upgrade_index] = new_shield
             self.parent.installed_shield = new_shield
         else: # invalid upgrade name
@@ -305,6 +308,9 @@ class Room(pg.sprite.Group):
         if hasattr(self, "_power") and self.role is not None:
             if value >=0 and value <= self.max_power:
                 self._power = value
+                if self.role == "shields":
+                    if self.parent.installed_shield is not None and self.parent.installed_shield.curr_charge > 0:
+                        self.parent.installed_shield.curr_charge = 0 if self._power == 0 else self.parent.installed_shield.curr_charge
             else:
                 print(f"Could not set power: Power level is out of range! (role: {self.role}, {value}/{self.max_power})")
         else:

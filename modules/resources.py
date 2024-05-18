@@ -16,11 +16,11 @@ def get_font(font: str ="arial", size=16, bold=False) -> pg.font.Font:
     if font == "arial":
         return pg.font.Font(path.join(_FONTS, "arial.ttf"), size)
     try: 
-        res_font = pg.font.Font(path.join(_FONTS, f"{font}.font"), size)
+        res_font = pg.font.Font(path.join(_FONTS, f"{font}.ttf"), size)
     except:
         print(f"Font {font} was not found in the local dir! Using default system font...")
         res_font = pg.font.SysFont("arial", size, bold=bold)
-    print(res_font)
+
     return res_font
 
 def load_config() -> dict:
@@ -243,7 +243,7 @@ ship_layouts = {
                 "pos": (8, 3),
                 "tiles": [[1,1],[1,1]],
                 "role": "shields",
-                "level": 1
+                "level": 2
             },
             {
                 "pos": (10, 2),
@@ -274,7 +274,12 @@ ship_layouts = {
                 "pos": (14, 2),
                 "tiles": [[1,1]],
                 "role": "pilot",
-                "level": 1
+                "level": 1,
+                "upgrade_slots": {
+                    "shield": {
+                        "right": "shield_mk1"
+                    }
+                }
             }
         ]
     }
