@@ -345,3 +345,24 @@ class Spaceship:
                 thrusters.append(room_thrusters)
             
         return thrusters if len(thrusters) > 0 else None
+    
+    @property
+    def max_power(self) -> int:
+        """Return the maximum power that the ship generates."""
+
+        return 6 + self._room_enine.level * 2 # base generation 6 + each level of the engine provides 2 power
+
+    @property
+    def current_power(self) -> int:
+        """Return the current power usage of the ship."""
+
+        power_level = 0
+        for system in self.installed_systems:
+            power_level += self.installed_systems[system].power
+        return power_level
+
+    @property
+    def usable_power(self) -> int:
+        """Return the amount of power that can be used by the player."""
+
+        return self.max_power - self.current_power

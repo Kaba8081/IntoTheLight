@@ -159,18 +159,3 @@ class Player(Spaceship):
             return True
 
         return False
-
-    @property
-    def max_power(self) -> int:
-        """Return the maximum power that the ship generates."""
-
-        return 6 + self._room_enine.level * 2 # base generation 6 + each level of the engine provides 2 power
-
-    @property
-    def current_power(self) -> int:
-        """Return the current power usage of the ship."""
-
-        power_level = 0
-        for system in self.installed_systems:
-            power_level += self.installed_systems[system].power
-        return power_level

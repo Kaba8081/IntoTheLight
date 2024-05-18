@@ -306,13 +306,13 @@ class Room(pg.sprite.Group):
         """
 
         if hasattr(self, "_power") and self.role is not None:
-            if value >=0 and value <= self.max_power:
+            if value >=0 and value <= self.max_power and self.parent.usable_power >= value - self.power:
                 self._power = value
                 if self.role == "shields":
                     if self.parent.installed_shield is not None and self.parent.installed_shield.curr_charge > 0:
                         self.parent.installed_shield.curr_charge = 0 if self._power == 0 else self.parent.installed_shield.curr_charge
             else:
-                print(f"Could not set power: Power level is out of range! (role: {self.role}, {value}/{self.max_power})")
+                print(f"Could not set power: Power level is out of range! (role: {self.role}, {value}/{self.max_power}/{self.parent.usable_power})")
         else:
             print("Could not set power: Room is not a system room!")
 
