@@ -1,19 +1,37 @@
 import time
 import pygame as pg
-from threading import Thread
+from typing import Union
+import threading
 
 from modules.display import Display
 from modules.player import Player
 from modules.enemy import Enemy
-from modules.resources import keybinds, CONFIG, load_textures
+from modules.resources import *
 
 class IntoTheLight:
-    def __init__(self):
+    # public
+    THREAD_INTERVAL: float
+    THREAD_INTERVAL = 0.2
+
+    # private
+    _enemy_events: list[GameEvents]
+    _enemy_events_lock: threading.Lock
+
+    _game_events: list[GameEvents]
+    _game_events_lock: threading.Lock
+
+    def __init__(self) -> None:
         pg.init()
 
         self.resolution = [int(value) for value in CONFIG["resolution"].split("x")]
 
-    def game_loop(self):
+        self._enemy_events = []
+        self._enemy_events_lock = threading.Lock()
+
+        self._game_events = []
+        self._game_events_lock = threading.Lock()
+
+    def game_loop(self) -> None:
         mouse_event = False
 
         self.screen = pg.display.set_mode(self.resolution)
@@ -25,6 +43,7 @@ class IntoTheLight:
         self.player = Player()
         self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
         self.display = Display(self.screen, self.resolution, float(CONFIG["ratio"]), self.player, self.enemy)
+        mouse_pos = (0,0)
 
         while True: # game loop
             mouse_focused = pg.mouse.get_focused()
@@ -51,7 +70,7 @@ class IntoTheLight:
                 self.display.check_mouse_hover(mouse_pos)
 
             self.player.update(dt, mouse_pos)
-            self.enemy.update(dt)
+            self.enemy_events = self.enemy.update(dt)
             self.display.update()
             self.display.draw()
 
@@ -59,18 +78,56 @@ class IntoTheLight:
             self.screen.fill((0,0,0))
             dt = clock.tick(60) / 1000 # cap the game's framerate at 60 fps
 
-    def enemy_controller(self):
+    def enemy_controller(self) -> None:
         while True:
             if not hasattr(self, "enemy"):
                 time.sleep(2)
             else:
-                # TODO: implement basic enemy ai
-                pass
+                for event in self.enemy_events:
+                    match event:
+                        case GameEvents.SHIP_DESTROYED:
+                            print("Enemy destroyed, stopping thread...")
+                            return
+                        case GameEvents.TOOK_DAMAGE: # TODO: send crew to the damaged system
+                            print("Enemy system took damage")
+                            continue  
+                               
+                del self.enemy_events
+            time.sleep(self.THREAD_INTERVAL)
+    @property
+    def enemy_events(self) -> list[GameEvents]:
+        with self._enemy_events_lock:
+            return self._enemy_events
+    
+    @enemy_events.setter
+    def enemy_events(self, event: Union[GameEvents, list[GameEvents], None]) -> None:
+        if event is not None:
+            return threading.Thread(target=self._enemy_events_thread_setter, args=(event)).start()
+        return
+    
+    @enemy_events.deleter
+    def enemy_events(self) -> None:
+        with self._enemy_events_lock:
+            self._enemy_events = []
+    
+    def _enemy_events_thread_setter(self, event: Union[GameEvents, list[GameEvents]]) -> None:
+        while True:
+            time.sleep(self.THREAD_INTERVAL)
+            if self._enemy_events_lock.locked():
+                continue
+            
+            if isinstance(event, list):
+                with self._enemy_events_lock:
+                    self._enemy_events = event
+            else:
+                with self._enemy_events_lock:
+                    self._enemy_events.append(event)
+            return
 
 if __name__ == "__main__":
     game_instance = IntoTheLight()
-    game_loop_thread = Thread(target=game_instance.game_loop)
-    enemy_controller_thread = Thread(target=game_instance.enemy_controller)
+    game_loop_thread = threading.Thread(target=game_instance.game_loop)
+    enemy_controller_thread = threading.Thread(target=game_instance.enemy_controller)
 
     game_loop_thread.start()
     enemy_controller_thread.start()

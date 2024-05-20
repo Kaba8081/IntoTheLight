@@ -2,6 +2,7 @@ from typing import Union
 import pygame as pg
 from os import path
 import json
+from enum import Enum, auto
 
 _FILEPATH = path.dirname(path.realpath(__file__))
 _FILEPATH = path.abspath(path.join(_FILEPATH, ".."))
@@ -102,6 +103,15 @@ def exclude_value_from_dict(input: dict, value: Union[tuple, any]) -> dict:
         return {key: input[key] for key in input.keys() if key not in value}
 
     return {key: input[key] for key in input.keys() if key != value}
+
+class GameEvents(Enum):
+    """Events that the game needs to handle."""
+    TOOK_DAMAGE = 0
+    SYSTEM_DAMAGED = auto()
+    SHIP_DESTROYED = auto()
+    ENEMY_RESIGNING = auto()
+    GAME_PAUSED = auto()
+
 
 CONFIG = load_config()
 

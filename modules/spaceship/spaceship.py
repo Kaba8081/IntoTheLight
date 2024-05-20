@@ -7,7 +7,7 @@ from modules.spaceship.room import Room
 from modules.spaceship.door import Door
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
-from modules.resources import ship_layouts, systems
+from modules.resources import ship_layouts, systems, GameEvents
 
 class Spaceship:
     # public
@@ -21,6 +21,8 @@ class Spaceship:
     installed_shield: Union[Shield, None]
     hull_hp: int
     destroyed: bool
+    event_queue: list[GameEvents]
+    autofire: bool
 
     # private
     _room_enine: Union[Room, None]
@@ -39,6 +41,8 @@ class Spaceship:
         self.screen_size = screen_size
         self.doors = pg.sprite.Group()
         self.projectiles = []
+        self.event_queue = []
+        self.autofire = True if enemy else False
 
         # required systems
         self._room_enine = None
@@ -132,7 +136,7 @@ class Spaceship:
             else:
                 projectile.draw(screen)
 
-    def update(self, dt: float) -> None:
+    def update(self, dt: float) -> list[GameEvents]:
         if self.hull_hp <= 0:
             self._anim_destroy()
             return
@@ -159,6 +163,10 @@ class Spaceship:
         if self.installed_shield is not None:
             max_shields = self.installed_systems["shields"].power // 2 if "shields" in self.installed_systems.keys() else 0
             self.installed_shield.update(dt, max_shields)
+        
+        temp_events = self.event_queue[:] if len(self.event_queue) > 0 else None
+        self.event_queue = []
+        return temp_events
 
     def get_corners(self) -> tuple[tuple[int, int], tuple[int, int]]:
         """

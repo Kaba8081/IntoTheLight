@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
-from modules.resources import textures
+from modules.resources import textures, GameEvents
 
 class Room(pg.sprite.Group):
     # public
@@ -220,6 +220,7 @@ class Room(pg.sprite.Group):
         """
 
         self.parent.hull_hp -= projectile.damage
+        self.parent.event_queue.append(GameEvents.TOOK_DAMAGE)
 
         # TODO: implement projectile type specific damage
         if hasattr(self, "_health"):

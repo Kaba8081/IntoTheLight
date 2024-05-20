@@ -18,7 +18,6 @@ class Player(Spaceship):
     drones: int
     scrap: int
     selected_weapon: Union[Weapon, None]
-    autofire: bool
 
     enemy = False
     
@@ -35,7 +34,6 @@ class Player(Spaceship):
 
         # weapon logic
         self.selected_weapon = None
-        self.autofire = False
 
         super().__init__(ship_type, screen_size)
     
