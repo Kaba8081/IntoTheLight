@@ -366,3 +366,11 @@ class Spaceship:
         """Return the amount of power that can be used by the player."""
 
         return self.max_power - self.current_power
+    
+    @property
+    def evade_stat(self) -> int:
+        return 10 + self._room_enine.level * 5 if self._room_enine.power > 0 else 0
+    
+    @property
+    def oxygen(self) -> int: # TODO: implement oxygen system
+        return 100

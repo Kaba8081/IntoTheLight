@@ -151,6 +151,8 @@ class InterfaceController(pg.sprite.Group):
         self._status_bar_size = (self.resolution[0] * self._status_bar_ratio, 128)
         self._status_surface = pg.Surface(self._status_bar_size, pg.SRCALPHA)
         self._status_bar_shields = ShieldBar(self._player.installed_shield, (0, 48))
+        self._status_bar_evade_oxygen_font = get_font("arial", 16)
+        self._status_bar_evade_oxygen = textures["ui_top_evade_oxygen"]["on"]
 
         roles = ["fuel", "missiles", "drones"]
         self._resource_icons = []
@@ -244,6 +246,16 @@ class InterfaceController(pg.sprite.Group):
         self._status_bar_shields.draw(self._status_surface)
 
         self.surface.blit(self._status_surface, self._status_bar_coords)
+
+        # draw evade and oxygen bar
+        evade = self._status_bar_evade_oxygen_font.render(f"{self._player.evade_stat} %", True, (255,255,255))
+        oxygen = self._status_bar_evade_oxygen_font.render(f"{self._player.oxygen} %", True, (255,255,255))
+
+        self.surface.blit(self._status_bar_evade_oxygen.image, (self._status_bar_coords[0], self._status_bar_coords[1] + 96))
+        self.surface.blit(evade, (self._status_bar_coords[0] + 40 + evade.get_width()//2, self._status_bar_coords[1] + 96 + 8))
+        self.surface.blit(oxygen, (self._status_bar_coords[0] + 36 + oxygen.get_width()//2, self._status_bar_coords[1] + 96 + 30))
+
+        del evade, oxygen
 
         return
 

@@ -13,8 +13,8 @@ pg.font.init()
 
 def get_font(font: str ="arial", size=16, bold=False) -> pg.font.Font:
     """Return a pygame.font.Font object with the specified font, size and boldness."""
-    if font == "arial":
-        return pg.font.Font(path.join(_FONTS, "arial.ttf"), size)
+    # if font == "arial":
+    #     return pg.font.Font(path.join(_FONTS, "arial.ttf"), size)
     try: 
         res_font = pg.font.Font(path.join(_FONTS, f"{font}.ttf"), size)
     except:
@@ -54,8 +54,9 @@ def autocomplete_configs(config: dict, config_str: str) -> dict:
                     if "clicked_hover" not in states:
                         button_palletes[pallete_id][category]["clicked_hover"] = button_palletes[pallete_id][category]["clicked"]
 
-def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> Union[pg.sprite.Sprite, dict]:
+def load_ftl_image(name: Union[str, list], **kwargs) -> Union[pg.sprite.Sprite, dict]:
 
+    default_extension = ".png"
     src_path = kwargs["basePath"] if "basePath" in kwargs.keys() else _FILEPATH
     colorkey = (255, 0, 255) # hardcoded colorkey for FTL images (may break in the future)
 
@@ -68,7 +69,7 @@ def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> U
                 texture_dict[sprite_name].image = pg.image.load(path.join(src_path, "{prefix}{name}{suffix}{extension}".format(
                     prefix=kwargs["prefix"] if "prefix" in kwargs.keys() else "",
                     suffix=kwargs["suffix"] if "suffix" in kwargs.keys() else "",
-                    extension=kwargs["extension"] if "extension" in kwargs.keys() else extension,
+                    extension=kwargs["extension"] if "extension" in kwargs.keys() else default_extension,
                     name=sprite_name
                 ))).convert_alpha()
                 texture_dict[sprite_name].image.set_colorkey(colorkey, pg.RLEACCEL)
@@ -82,7 +83,7 @@ def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> U
             result.image = pg.image.load(path.join(src_path, "{prefix}{name}{suffix}{extension}".format(
                 prefix=kwargs["prefix"] if "prefix" in kwargs.keys() else "",
                 suffix=kwargs["suffix"] if "suffix" in kwargs.keys() else "",
-                extension=kwargs["extension"] if "extension" in kwargs.keys() else extension,
+                extension=kwargs["extension"] if "extension" in kwargs.keys() else default_extension,
                 name=name
             ))).convert_alpha()
             result.image.set_colorkey(colorkey, pg.RLEACCEL)
@@ -94,6 +95,13 @@ def load_ftl_image(name: Union[str, list], extension: str=".png", **kwargs) -> U
     except Exception as e:
         print(f"Error loading image {name} from {src_path}! {e}")
         return pg.Surface((1,1))
+
+def exclude_value_from_dict(input: dict, value: Union[tuple, any]) -> dict:
+    """Return a new dictionary with all values that are not equal to the specified value / values."""
+    if isinstance(value, tuple) or isinstance(value, list):
+        return {key: input[key] for key in input.keys() if key not in value}
+
+    return {key: input[key] for key in input.keys() if key != value}
 
 CONFIG = load_config()
 
@@ -314,6 +322,12 @@ texture_config = {
         "extension": ".png",
         "prefix": "top_",
         "suffix": {"on":"_on", "off":"_off", "hacked":"_hacked", "hacked_charged":"_hacked_charged"}
+    },
+    "ui_top_evade_oxygen": {
+        "basePath": path.join(_FILEPATH, "statusUI"),
+        "extension": ".png",
+        "prefix": "top_",
+        "suffix": {"on": "", "both_red": "_both_red", "up_red": "_up_red", "down_red": "_down_red"}
     }
 }
 
@@ -448,7 +462,7 @@ def load_textures(): # use this function after initializing the display
     for system in systems:
         textures["system_icons"][system] = dict()
         for suffix in texture_config["icons"]["suffix"].keys():
-            textures["system_icons"][system][suffix] = load_ftl_image(system, basePath=texture_config["icons"]["basePath"], prefix=texture_config["icons"]["prefix"], suffix=texture_config["icons"]["suffix"][suffix])
+            textures["system_icons"][system][suffix] = load_ftl_image(system, suffix=texture_config["icons"]["suffix"][suffix], **exclude_value_from_dict(texture_config["icons"], "suffix"))
 
         additional_sprites = {
             "overlayGrey": (125, 125, 125),
@@ -478,33 +492,38 @@ def load_textures(): # use this function after initializing the display
     for resource in ["fuel", "missiles", "drones"]:
         textures["ui_top_resource_icons"][resource] = dict()
         for suffix in texture_config["ui_top_resource_icons"]["suffix"]:
-            textures["ui_top_resource_icons"][resource][suffix] = load_ftl_image(resource, suffix=texture_config["ui_top_resource_icons"]["suffix"][suffix], basePath=texture_config["ui_top_resource_icons"]["basePath"], prefix=texture_config["ui_top_resource_icons"]["prefix"], extension=".png")
+            textures["ui_top_resource_icons"][resource][suffix] = load_ftl_image(resource, suffix=texture_config["ui_top_resource_icons"]["suffix"][suffix], **exclude_value_from_dict(texture_config["ui_top_resource_icons"], "suffix"))
     # scrap icons are named differently for some reason
     textures["ui_top_resource_icons"]["scrap"] = dict()
-    textures["ui_top_resource_icons"]["scrap"]["white"] = load_ftl_image("scrap", extension=".png", basePath=texture_config["ui_top_resource_icons"]["basePath"], prefix=texture_config["ui_top_resource_icons"]["prefix"])
-    textures["ui_top_resource_icons"]["scrap"]["red"] = load_ftl_image("scrap_red", extension=".png", basePath=texture_config["ui_top_resource_icons"]["basePath"], prefix=texture_config["ui_top_resource_icons"]["prefix"])
+    textures["ui_top_resource_icons"]["scrap"]["white"] = load_ftl_image("scrap", **exclude_value_from_dict(texture_config["ui_top_resource_icons"], "suffix"))
+    textures["ui_top_resource_icons"]["scrap"]["red"] = load_ftl_image("scrap_red", **exclude_value_from_dict(texture_config["ui_top_resource_icons"], "suffix"))
 
     # ui top shields
     textures["ui_top_shields"] = dict()
     for suffix in texture_config["ui_top_shields"]["suffix"]:
-        textures["ui_top_shields"][suffix] = load_ftl_image("shields4", suffix=texture_config["ui_top_shields"]["suffix"][suffix], basePath=texture_config["ui_top_shields"]["basePath"], prefix=texture_config["ui_top_shields"]["prefix"], extension=".png")
-    textures["ui_top_shields"]["energy_shield_box"] = load_ftl_image("energy_shield_box", extension=".png", basePath=texture_config["ui_top_shields"]["basePath"], size=(50,10))
+        textures["ui_top_shields"][suffix] = load_ftl_image("shields4", suffix=texture_config["ui_top_shields"]["suffix"][suffix], **exclude_value_from_dict(texture_config["ui_top_shields"], "suffix"))
+    textures["ui_top_shields"]["energy_shield_box"] = load_ftl_image("energy_shield_box", basePath=texture_config["ui_top_shields"]["basePath"], size=(50,10))
 
     textures["ui_top_shields_icons"] = dict()
     for suffix in texture_config["ui_top_shields_icons"]["suffix"]:
-        textures["ui_top_shields_icons"][suffix] = load_ftl_image("shieldsquare1", suffix=texture_config["ui_top_shields_icons"]["suffix"][suffix], extension=".png", basePath=texture_config["ui_top_shields_icons"]["basePath"], prefix=texture_config["ui_top_shields_icons"]["prefix"])
+        textures["ui_top_shields_icons"][suffix] = load_ftl_image("shieldsquare1", suffix=texture_config["ui_top_shields_icons"]["suffix"][suffix], **exclude_value_from_dict(texture_config["ui_top_shields_icons"], "suffix"))
 
     # ui hull bar
     textures["ui_hull_bar"] = dict()
-    textures["ui_hull_bar"]["top_hull_white"] = load_ftl_image("top_hull", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
-    textures["ui_hull_bar"]["top_hull_red"] = load_ftl_image("top_hull_red", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
+    textures["ui_hull_bar"]["top_hull_white"] = load_ftl_image("top_hull", basePath=path.join(_FILEPATH, "statusUI"))
+    textures["ui_hull_bar"]["top_hull_red"] = load_ftl_image("top_hull_red", basePath=path.join(_FILEPATH, "statusUI"))
     textures["ui_hull_bar"]["top_hull_bar_mask"] = dict()
     colors = {"red": (255,0,0), "yellow": (255, 152, 48), "green": (100, 255, 98)}
-    textures["ui_hull_bar"]["top_hull_bar_mask"]["white"] = load_ftl_image("top_hull_bar_mask", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
+    textures["ui_hull_bar"]["top_hull_bar_mask"]["white"] = load_ftl_image("top_hull_bar_mask", basePath=path.join(_FILEPATH, "statusUI"))
     for color in colors.keys():
-        textures["ui_hull_bar"]["top_hull_bar_mask"][color] = load_ftl_image("top_hull_bar_mask", extension=".png", basePath=path.join(_FILEPATH, "statusUI"))
+        textures["ui_hull_bar"]["top_hull_bar_mask"][color] = load_ftl_image("top_hull_bar_mask", basePath=path.join(_FILEPATH, "statusUI"))
         
         bildPixel = pg.surfarray.pixels3d(textures["ui_hull_bar"]["top_hull_bar_mask"][color].image)
         for i in range(3):
             bildPixel[bildPixel[:,:,i] == 255, i] = colors[color][i]
         del bildPixel
+    
+    # ui top evade and oxygen
+    textures["ui_top_evade_oxygen"] = dict()
+    for suffix in texture_config["ui_top_evade_oxygen"]["suffix"]:
+        textures["ui_top_evade_oxygen"][suffix] = load_ftl_image("evade_oxygen", suffix=texture_config["ui_top_evade_oxygen"]["suffix"][suffix], **exclude_value_from_dict(texture_config["ui_top_evade_oxygen"], "suffix"))
