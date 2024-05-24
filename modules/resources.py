@@ -1,8 +1,12 @@
-from typing import Union
+from typing import Union, TypeVar
 import pygame as pg
 from os import path
 import json
 from enum import Enum, auto
+import threading
+import time
+
+T = TypeVar("T")
 
 _FILEPATH = path.dirname(path.realpath(__file__))
 _FILEPATH = path.abspath(path.join(_FILEPATH, ".."))
@@ -97,6 +101,37 @@ def load_ftl_image(name: Union[str, list], **kwargs) -> Union[pg.sprite.Sprite, 
         print(f"Error loading image {name} from {src_path}! {e}")
         return pg.Surface((1,1))
 
+def load_ftl_spritesheet(name: str, sprite_size: tuple[int,int], row_data: tuple[int], **kwargs) -> list[pg.sprite.Sprite]:
+    """Loads a spritesheet and returns a dictionary with the sprites.
+    :param name: The filename of the spritesheet.
+    :param sprite_size: The size of each sprite.
+    :param row_data: A tuple with the amount of sprites in each row.
+    :param basePath: The path to the spritesheet.
+    :param extension: The extension of the spritesheet.
+    """
+
+    basePath = _FILEPATH if "basePath" not in kwargs.keys() else kwargs["basePath"]
+    extension = ".png" if "extension" not in kwargs.keys() else kwargs["extension"]
+ 
+    spritesheet = pg.load.image(path.join(basePath, f"{name}{extension}")).convert_alpha()
+    im_height = spritesheet.get_height()
+    sprites = list()
+    for y in range(0, int(im_height // sprite_size[1])):
+        for x in range(0, row_data[y]):
+            sprite = pg.sprite.Sprite()
+            rect = (x, y, x + sprite_size[0], y + sprite_size[1])
+            sprite.image = pg.Surface(rect.size).convert_alpha()
+            sprite.image.blit(spritesheet, (0,0), rect)
+
+            colorkey = sprite.image.get_at((0,0))
+            sprite.image.set_colorkey(colorkey, pg.RLEACCEL)
+            sprite.rect = sprite.image.get_rect()
+
+            sprites.append(sprite)
+            del rect, colorkey
+
+    return sprites
+
 def exclude_value_from_dict(input: dict, value: Union[tuple, any]) -> dict:
     """Return a new dictionary with all values that are not equal to the specified value / values."""
     if isinstance(value, tuple) or isinstance(value, list):
@@ -112,6 +147,50 @@ class GameEvents(Enum):
     ENEMY_RESIGNING = auto()
     GAME_PAUSED = auto()
 
+class ThreadedVariable:
+    # public
+    value: T
+
+    def __init__(self, value: T) -> None:
+        self.value = value
+        self.value_lock = threading.Lock()
+    
+    def __setattr__(self, obj, value: T) -> None:
+        return threading.Thread(target=self._thread_set_value, args=(value)).start()
+
+    def __getattribute__(self, obj, objtype = None) -> T:
+        if self.value_lock.locked():
+            return threading.Thread(target=self._thread_get_value).start()
+        
+        with self._enemy_events_lock:
+            return self.value
+
+    def __str__(self) -> str:
+        return str(self.value)
+
+    def set(self, value: T) -> None:
+        self.value = value
+        return
+
+    def _thread_set_value(self, value: T) -> None:
+        while True:
+            time.sleep(0.1)
+            if self.value_lock.locked():
+                continue
+            
+            with self._enemy_events_lock:
+                self.value = value
+            
+            return
+    
+    def _thread_get_value(self) -> T:
+        while True:
+            time.sleep(0.1)
+            if self.value_lock.locked():
+                continue
+
+            with self.value_lock:
+                return self.value
 
 CONFIG = load_config()
 
