@@ -113,13 +113,13 @@ def load_ftl_spritesheet(name: str, sprite_size: tuple[int,int], row_data: tuple
     basePath = _FILEPATH if "basePath" not in kwargs.keys() else kwargs["basePath"]
     extension = ".png" if "extension" not in kwargs.keys() else kwargs["extension"]
  
-    spritesheet = pg.load.image(path.join(basePath, f"{name}{extension}")).convert_alpha()
+    spritesheet = pg.image.load(path.join(basePath, f"{name}{extension}")).convert_alpha()
     im_height = spritesheet.get_height()
     sprites = list()
-    for y in range(0, int(im_height // sprite_size[1])):
+    for y in range(0, int(im_height // sprite_size[1])-1):
         for x in range(0, row_data[y]):
             sprite = pg.sprite.Sprite()
-            rect = (x, y, x + sprite_size[0], y + sprite_size[1])
+            rect = pg.Rect(x, y, x + sprite_size[0], y + sprite_size[1])
             sprite.image = pg.Surface(rect.size).convert_alpha()
             sprite.image.blit(spritesheet, (0,0), rect)
 
@@ -383,6 +383,18 @@ ship_layouts = {
 }
 
 texture_config = {
+    # people
+
+    "human": {
+        "basePath": path.join(_FILEPATH, "people"),  
+        "extension": ".png",
+        "suffix": {"base":"_base", "color": "_color", "layer1": "_layer1", "layer2": "_layer2"},
+        "sprite_size": (32, 32),
+        "row_data": (8,8,9,8,8,9,6,8,8,9,6,9,8)
+    },
+
+    # ui elements
+
     "icons": {
         "basePath": path.join(_FILEPATH, "icons"),
         "extension": ".png",
@@ -547,6 +559,14 @@ button_palletes = {
 autocomplete_configs(button_palletes, "button_palletes")
 
 def load_textures(): # use this function after initializing the display
+    # people
+    textures["people"] = dict()
+
+    # humans
+    for suffix in texture_config["human"]["suffix"].keys():
+        textures["people"]["human"] = load_ftl_spritesheet(f"human{texture_config['human']['suffix'][suffix]}", **exclude_value_from_dict(texture_config["human"], "suffix"))
+
+    # -- ui elements --
     # add icons to textures
     for system in systems:
         textures["system_icons"][system] = dict()
