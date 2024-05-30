@@ -121,15 +121,12 @@ class Spaceship:
         for projectile in self.projectiles:
             v_pos = projectile.position()
 
-            if self.enemy: # TODO: create the same function for enemy projectiles
-                pass
-            else:
-                if v_pos[0] >= screen.get_width():
-                    projectile.switched_screens = True
-                    projectile.update_vectors((
-                        enemy_screen.get_width(),
-                        enemy_screen.get_height()//2  + randint(-25, 25)
-                    ))
+            if v_pos[0] >= screen.get_width() and not projectile.switched_screens:
+                projectile.switched_screens = True
+                projectile.update_vectors((
+                    enemy_screen.get_width(),
+                    enemy_screen.get_height()//2  + randint(-25, 25)
+                ))
 
             if projectile.switched_screens:
                 projectile.draw(enemy_screen)
@@ -298,6 +295,72 @@ class Spaceship:
                                 (connected_tiles[0].rect.centery + connected_tiles[1].rect.centery)/2
                                 )
                     Door(door_coords, self.doors)
+
+    def activate_weapon(self, weapon: Weapon) -> bool:
+        """
+        Try to activate a weapon if there is enough power left. If successful, return True.
+        :param weapon: Weapon - the weapon to activate
+        """
+
+        curr_power = self.current_power
+        max_power = self.max_power 
+        power_left = max_power - curr_power
+
+        if power_left >= weapon.req_power and self.check_if_system_accepts_power("weapons", weapon.req_power):
+            self.toggle_system_power(("weapons", True), weapon.req_power)
+            weapon.activate()
+            return True
+
+        return False
+    
+    def toggle_system_power(self, action: tuple[str, bool], value: int = 1) -> None:
+        """ 
+        Toggles the power level of a system. 
+
+        :param action: tuple[str, bool] - the name of the system and whether add/remove power (True/False)
+        :param value: int - the amount of power to add/remove (default = 1)
+        """
+
+        system_name, action = action
+        for installed_system_name in self.installed_systems.keys():
+            if installed_system_name == system_name:
+                room = self.installed_systems[installed_system_name]
+
+                if action:
+                    room.power += value
+                else:
+                    room.power -= value
+
+                return
+    
+    def get_system_max_power(self, system: str) -> int:
+        """
+        Get the maximum power level of a system.
+        :param system: str - the name of the system
+        """
+
+        for installed_system_name in self.installed_systems.keys():
+            if installed_system_name == system:
+                room = self.installed_systems[installed_system_name]
+                return room.max_power
+        
+        print("Could not get the rooms max power: System not found!")
+        return 0
+    
+    def check_if_system_accepts_power(self, system: str, value: int) -> bool:
+        """
+        Check's if the given system can accept the given power level.
+        :param system: str - the name of the system
+        :param value: int - the power level to check
+        """
+
+        for installed_system_name in self.installed_systems.keys():
+            if installed_system_name == system:
+                room = self.installed_systems[installed_system_name]
+                return room.power + value <= room.max_power
+        
+        print("Could not check if system accepts power: System not found!")
+        return False
     
     def dev_draw_room_hitboxes(self, screen: pg.surface.Surface) -> None:
         """

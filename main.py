@@ -15,21 +15,17 @@ class IntoTheLight:
 
     # private
     _enemy_events: list[GameEvents]
-    _enemy_events_lock: threading.Lock
-
+    _enemy_actions: dict[EnemyActions, any]
     _game_events: list[GameEvents]
-    _game_events_lock: threading.Lock
 
     def __init__(self) -> None:
         pg.init()
 
         self.resolution = [int(value) for value in CONFIG["resolution"].split("x")]
 
-        self._enemy_events = []
-        self._enemy_events_lock = threading.Lock()
-
-        self._game_events = []
-        self._game_events_lock = threading.Lock()
+        self._enemy_events = ThreadVariable([], threading.Lock())
+        self._enemy_actions = ThreadVariable({}, threading.Lock())
+        self._game_events = ThreadVariable([], threading.Lock())
 
     def game_loop(self) -> None:
         mouse_event = False
@@ -70,7 +66,7 @@ class IntoTheLight:
                 self.display.check_mouse_hover(mouse_pos)
 
             self.player.update(dt, mouse_pos)
-            self.enemy_events = self.enemy.update(dt)
+            self._enemy_events.set_value(self.enemy.update(dt))
             self.display.update()
             self.display.draw()
 
@@ -83,46 +79,19 @@ class IntoTheLight:
             if not hasattr(self, "enemy"):
                 time.sleep(2)
             else:
-                for event in self.enemy_events:
+                for event in self._enemy_events.get_value():
                     match event:
                         case GameEvents.SHIP_DESTROYED:
                             print("Enemy destroyed, stopping thread...")
                             return
                         case GameEvents.TOOK_DAMAGE: # TODO: send crew to the damaged system
                             print("Enemy system took damage")
-                            continue  
-                               
-                del self.enemy_events
+                            continue
+                self._enemy_events.revert_default()
+
+                # TODO: implement a timer so the checks don't happend every thread tick
+                self.enemy.check_weapon_states(self.player)   
             time.sleep(self.THREAD_INTERVAL)
-    @property
-    def enemy_events(self) -> list[GameEvents]:
-        with self._enemy_events_lock:
-            return self._enemy_events
-    
-    @enemy_events.setter
-    def enemy_events(self, event: Union[GameEvents, list[GameEvents], None]) -> None:
-        if event is not None:
-            return threading.Thread(target=self._enemy_events_thread_setter, args=(event)).start()
-        return
-    
-    @enemy_events.deleter
-    def enemy_events(self) -> None:
-        with self._enemy_events_lock:
-            self._enemy_events = []
-    
-    def _enemy_events_thread_setter(self, event: Union[GameEvents, list[GameEvents]]) -> None:
-        while True:
-            time.sleep(self.THREAD_INTERVAL)
-            if self._enemy_events_lock.locked():
-                continue
-            
-            if isinstance(event, list):
-                with self._enemy_events_lock:
-                    self._enemy_events = event
-            else:
-                with self._enemy_events_lock:
-                    self._enemy_events.append(event)
-            return
 
 if __name__ == "__main__":
     game_instance = IntoTheLight()

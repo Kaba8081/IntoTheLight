@@ -1,4 +1,5 @@
 from typing import Union, TypeVar
+from dataclasses import dataclass
 import pygame as pg
 from os import path
 import json
@@ -147,50 +148,54 @@ class GameEvents(Enum):
     ENEMY_RESIGNING = auto()
     GAME_PAUSED = auto()
 
-class ThreadedVariable:
-    # public
+class EnemyActions(Enum):
+    """Actions that the enemy can take."""
+    AIM_WEAPON = 0
+    RESIGN = auto()
+
+class ThreadVariable:
     value: T
+    lock: threading.Lock
+    default: T
 
-    def __init__(self, value: T) -> None:
+    def __init__(self, value: T, lock: threading.Lock) -> None:
         self.value = value
-        self.value_lock = threading.Lock()
-    
-    def __setattr__(self, obj, value: T) -> None:
-        return threading.Thread(target=self._thread_set_value, args=(value)).start()
+        self.lock = lock
+        self.default = value
 
-    def __getattribute__(self, obj, objtype = None) -> T:
-        if self.value_lock.locked():
-            return threading.Thread(target=self._thread_get_value).start()
-        
-        with self._enemy_events_lock:
-            return self.value
-
-    def __str__(self) -> str:
-        return str(self.value)
-
-    def set(self, value: T) -> None:
-        self.value = value
         return
 
-    def _thread_set_value(self, value: T) -> None:
-        while True:
-            time.sleep(0.1)
-            if self.value_lock.locked():
-                continue
-            
-            with self._enemy_events_lock:
-                self.value = value
-            
+    def set_value(self, value: T) -> None:
+        """Set the value of the variable in a sepperate thread to ensure data safety.
+        :param value: The value to set the variable to."""
+        if value is None:
             return
+        
+        return threading.Thread(target=self._thread_set_value, args=(value,)).start()
     
-    def _thread_get_value(self) -> T:
-        while True:
+    def get_value(self) -> T:
+        """Waits for the lock to be released and returns the value."""
+        while self.lock.locked():
             time.sleep(0.1)
-            if self.value_lock.locked():
-                continue
 
-            with self.value_lock:
-                return self.value
+        with self.lock:
+            return self.value
+        
+    def _thread_set_value(self, value: T) -> None:
+        """Tries to set the given value until the lock is blocked.
+        :param value: The value to set.
+        """
+        while self.lock.locked():
+            time.sleep(0.1)
+
+        with self.lock:
+            self.value = value
+
+        return
+    
+    def revert_default(self) -> None:
+        """Returns the value to it's original state"""
+        self.value = self.default
 
 CONFIG = load_config()
 

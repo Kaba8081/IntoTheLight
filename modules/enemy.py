@@ -10,9 +10,24 @@ from modules.spaceship.room import Room
 
 from random import randint
 
+# systems ordered by priority
+enemy_weapon_targets = [
+    "weapons",
+    "shields",
+    "engines",
+    "oxygen",
+    "medbay",
+    "pilot",
+    "sensors",
+    "drones",
+    "doors"
+]
+
 class Enemy(Spaceship):
     # public 
     hull_hp: int
+    
+    enemy = True
 
     def __init__(self, 
                  ship_type: str = "cruiser",
@@ -22,6 +37,9 @@ class Enemy(Spaceship):
         super().__init__(ship_type, screen_size, True, offset)
 
         self.hull_hp = randint(12,20)
+
+        for system in self.installed_systems.values():
+            print(system.role, system.power)
     
     def select_room(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> Union[Room, None]:
         """
@@ -54,13 +72,28 @@ class Enemy(Spaceship):
                 room.aimed_at = True
         
         return
+    
+    def check_weapon_states(self, enemy_ship: Spaceship) -> None:
+        """Updates the state of enemy weapons"""
+        # checks if every weapon is active, if not, try to activate it
+        for weapon in self.weapons:
+            if weapon.state == "disabled":
+                self.activate_weapon(weapon)
 
-    def activate_weapon(self, weapon: Weapon) -> bool:
-        """
-        Try to activate a weapon if there is enough power left. If successful, return True.
-        :param weapon: Weapon - the weapon to activate
-        """
+        # checks if every active weapon has a target assigned
+        for weapon in self.weapons:
+            if not weapon.state == "disabled" and not weapon.target:
+                while True:
+                    random_system = enemy_weapon_targets[randint(0, len(enemy_weapon_targets)-1)]
+                    if random_system in enemy_ship.installed_systems.keys():
+                        weapon.target = enemy_ship.installed_systems[random_system]
+                        break
+        
+        return
 
-        # TODO: implement enemy power management
+    @property
+    def max_power(self) -> int: # TODO: implement enemy power manegement
+        """Return the maximum power that the ship generates."""
 
-        return True
+        # For now the enemy ship has a fixed power level
+        return 100

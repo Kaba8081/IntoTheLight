@@ -291,9 +291,7 @@ class Room(pg.sprite.Group):
     def power(self) -> int:
         """Return the current power used in the room."""
 
-        if self._enemy_ship:
-            return self.max_power
-        elif hasattr(self, "_power") and self.role is not None:
+        if hasattr(self, "_power") and self.role is not None:
             return self._power
         else:
             print("Could not return max_power: Room is not a system room or _power has not been set!")

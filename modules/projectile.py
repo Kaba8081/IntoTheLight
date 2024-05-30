@@ -68,7 +68,8 @@ class Projectile():
             self._vector2d_end.move_towards_ip(self.target_pos, self.speed * dt)
         else:
             self.delay -= dt
-
+        
+        # check if the projectile hit the shield
         shield = self._target_room.parent.installed_shield 
         if shield is not None and self.switched_screens:
             if hasattr(shield, "shield_mask") and shield.charge > 0:
@@ -82,8 +83,8 @@ class Projectile():
                     shield.take_damage(self)
                     return
         del shield
-        # TODO: Check for enemy shields using self._target_room.parent
 
+        # check if the projectile hit the target room
         if self._vector2d_start == self.target_pos:
             self._target_room.take_damage(self)
             self.hit_target = True
