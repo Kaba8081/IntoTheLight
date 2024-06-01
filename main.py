@@ -37,8 +37,8 @@ class IntoTheLight:
 
         load_textures()
         self.player = Player()
-        self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
-        self.display = Display(self.screen, self.resolution, float(CONFIG["ratio"]), self.player, self.enemy)
+        #self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
+        self.display = Display(self.screen, self.resolution, float(CONFIG["ratio"]), self.player)
         mouse_pos = (0,0)
 
         while True: # game loop
@@ -66,7 +66,8 @@ class IntoTheLight:
                 self.display.check_mouse_hover(mouse_pos)
 
             self.player.update(dt, mouse_pos)
-            self._enemy_events.set_value(self.enemy.update(dt))
+            if hasattr(self, "enemy"):
+                self._enemy_events.set_value(self.enemy.update(dt))
             self.display.update()
             self.display.draw()
 

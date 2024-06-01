@@ -44,13 +44,16 @@ class Display:
             screen.get_width() * self.ratio,
             screen.get_height()
             ))
-        self._enemy_screen = pg.Surface((
-            self._screen.get_height(),
-            self._screen.get_width() * (1-self.ratio)
-            ))
+
         
-        self.place_ship(self._player, ratio=self.ratio)
-        self.place_ship(self.enemy_ship, ratio=self.ratio, enemy=True)
+        self.place_ship(self._player)
+
+        if enemy is not None:
+            self._enemy_screen = pg.Surface((
+                self._screen.get_height(),
+                self._screen.get_width() * (1-self.ratio)
+                ))
+            self.place_ship(self.enemy_ship, enemy=True)
 
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
         """
@@ -74,7 +77,6 @@ class Display:
         Check if the mouse is hovering over any objects.
         :param mouse_pos: tuple[int, int] - the current mouse position
         """
-
         self._interface.check_mouse_hover(mouse_pos)
         
         if self.enemy_ship is not None and self._player.selected_weapon is not None:
@@ -102,11 +104,14 @@ class Display:
         """
         Draw's the display contents on screen.
         """
+        # TODO: Draw screen based if enemy ship is present or not
+        
         if self.enemy_ship is not None and self._interface.enemy_ui_active:
             self._interface.draw_enemy_interface(self._enemy_screen)
 
         self._screen.blit(self._player_screen, (0,0))
-        self._screen.blit(self._enemy_screen, (self._screen.get_width() * self.ratio, 0))
+        if self.enemy_ship is not None and self._interface.enemy_ui_active:
+            self._screen.blit(self._enemy_screen, (self._screen.get_width() * self.ratio, 0))
 
         # debug - draw border line between player / enemy cameras
         pg.draw.line(self._screen, (255,255,255), 
@@ -116,9 +121,10 @@ class Display:
         
         self._interface.draw(self._screen)
         self._player_screen.fill((0,0,0))
-        self._enemy_screen.fill((0,0,0))
+        if self.enemy_ship is not None and self._interface.enemy_ui_active:
+            self._enemy_screen.fill((0,0,0))
 
-    def place_ship(self, ship: Spaceship, ratio: float = 0.65, enemy: bool = False) -> None:
+    def place_ship(self, ship: Spaceship, enemy: bool = False) -> None:
         ship_center = ship.get_center()
         new_center = (0,0)
         if enemy:
@@ -147,7 +153,7 @@ class Display:
     def enemy_ship(self, value: Union[Enemy, None]) -> None: #TODO: change User Interface if enemy is changed
         if value == None:
             self._enemy = None
-            self._interface = None
+            self._interface.enemy_ship = None
         else:
             self._enemy = value
             self._interface.enemy_ship = value

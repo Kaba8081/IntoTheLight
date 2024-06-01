@@ -74,8 +74,6 @@ class InterfaceController(pg.sprite.Group):
         self._enemy_shields_bar = None
         if enemy is not None:
             self.enemy = enemy
-        else:
-            self.enemy_ui_active = False
 
         # Power bar
         self._installed_systems_icon_bar = pg.sprite.Group()
@@ -398,7 +396,13 @@ class InterfaceController(pg.sprite.Group):
         return self._enemy
 
     @enemy_ship.setter
-    def enemy_ship(self, enemy: Enemy) -> None:
+    def enemy_ship(self, enemy: Union[Enemy, None]) -> None:
+        if enemy is None:
+            self.enemy_ui_active = False
+            del self._enemy_shields_bar
+            self._enemy = None
+            return
+        
         self.enemy_ui_active = True
         self._enemy_shields_bar = ShieldBar(enemy.installed_shield, (0,0), True)
         self._enemy = enemy
