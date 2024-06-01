@@ -448,9 +448,9 @@ class PowerIcon(pg.sprite.Sprite):
             return
 
         if mouse_clicked[0]: # add power if possible
-            self._room_obj.power += 2 if self._room_obj.role == "shields" else 1
+            self._room_obj.power += 1
         elif mouse_clicked[2]: # remove power if possible
-            self._room_obj.power -= 2 if self._room_obj.role == "shields" else 1
+            self._room_obj.power -= 1
 
         return
     

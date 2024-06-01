@@ -12,7 +12,6 @@ from modules.resources import keybinds
 
 class Player(Spaceship):
     # public
-    enemy: bool
     fuel: int
     missles: int
     drones: int

@@ -175,7 +175,7 @@ class Weapon(UpgradeSlot):
 
         for i in range(self.volley_shots):
             delay = self.volley_delay * i
-            projectile = Projectile(self.rect.center, first_pos, self.projectile_type, 1, 300, (255,0,0), 15, 3, delay, target_room)
+            projectile = Projectile(self.rect.center, first_pos, self.projectile_type, 1, 300, (255,0,0), 15, 3, delay, target_room, not target_room.parent.enemy)
             self.projectile_queue.append(projectile)
 
         return self.projectile_queue

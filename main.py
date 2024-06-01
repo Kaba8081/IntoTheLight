@@ -90,7 +90,8 @@ class IntoTheLight:
                 self._enemy_events.revert_default()
 
                 # TODO: implement a timer so the checks don't happend every thread tick
-                self.enemy.check_weapon_states(self.player)   
+                self.enemy.check_weapon_states(self.player)
+                self.enemy.manage_power()
             time.sleep(self.THREAD_INTERVAL)
 
 if __name__ == "__main__":

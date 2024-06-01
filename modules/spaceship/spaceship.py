@@ -23,6 +23,7 @@ class Spaceship:
     destroyed: bool
     event_queue: list[GameEvents]
     autofire: bool
+    enemy: bool
 
     # private
     _room_enine: Union[Room, None]
@@ -42,7 +43,7 @@ class Spaceship:
         self.doors = pg.sprite.Group()
         self.projectiles = []
         self.event_queue = []
-        self.autofire = True if enemy else False
+        self.autofire = False
 
         # required systems
         self._room_enine = None
@@ -440,7 +441,7 @@ class Spaceship:
     
     @property
     def evade_stat(self) -> int:
-        return 10 + self._room_enine.level * 5 if self._room_enine.power > 0 else 0
+        return 10 + self._room_enine.power * 5 if self._room_enine.power > 0 else 0
     
     @property
     def oxygen(self) -> int: # TODO: implement oxygen system

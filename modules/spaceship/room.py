@@ -149,7 +149,8 @@ class Room(pg.sprite.Group):
             pg.draw.rect(screen, (255,0,0,150), self.rect.inflate(-8, -8), 1)
             pg.draw.rect(screen, (255,0,0,75), self.rect.inflate(-10, -10), 1)
         
-        if len(self.targeted_by) > 0:
+        # draw the targeted outline only if player ship has sensors above power level 2
+        if ((not self._enemy_ship and self.parent.installed_systems["sensors"].power >= 2) or self._enemy_ship) and len(self.targeted_by) > 0:
             pg.draw.rect(screen, (125,0,0,255), self.rect.inflate(-4, -4), 1)
             pg.draw.rect(screen, (125,0,0,150), self.rect.inflate(-8, -8), 1)
 
@@ -306,7 +307,10 @@ class Room(pg.sprite.Group):
 
         if hasattr(self, "_power") and self.role is not None:
             if value >=0 and value <= self.max_power and self.parent.usable_power >= value - self.power:
-                self._power = value
+                # shield power usage is doubled
+                change = value - self._power
+                self._power += change * 2 if self.role == "shields" else change
+
                 if self.role == "shields":
                     if self.parent.installed_shield is not None and self.parent.installed_shield.curr_charge > 0:
                         self.parent.installed_shield.curr_charge = 0 if self._power == 0 else self.parent.installed_shield.curr_charge
