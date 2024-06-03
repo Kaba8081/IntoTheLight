@@ -36,6 +36,7 @@ class Display:
         self._interface = InterfaceController(resolution, player, ratio=ratio, enemy=enemy)
         self._screen = screen
         self.ratio = ratio
+        self._enemy = None
 
         self._player = player
         self.enemy_ship = enemy
@@ -47,13 +48,6 @@ class Display:
 
         
         self.place_ship(self._player)
-
-        if enemy is not None:
-            self._enemy_screen = pg.Surface((
-                self._screen.get_height(),
-                self._screen.get_width() * (1-self.ratio)
-                ))
-            self.place_ship(self.enemy_ship, enemy=True)
 
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
         """
@@ -86,6 +80,7 @@ class Display:
         """
         Update the display.
         """
+        
         self._player.draw(self._player_screen)
 
         if self.enemy_ship is not None and self._interface.enemy_ui_active:
@@ -105,38 +100,46 @@ class Display:
         Draw's the display contents on screen.
         """
         # TODO: Draw screen based if enemy ship is present or not
-        
+
         if self.enemy_ship is not None and self._interface.enemy_ui_active:
             self._interface.draw_enemy_interface(self._enemy_screen)
-
-        self._screen.blit(self._player_screen, (0,0))
-        if self.enemy_ship is not None and self._interface.enemy_ui_active:
             self._screen.blit(self._enemy_screen, (self._screen.get_width() * self.ratio, 0))
 
-        # debug - draw border line between player / enemy cameras
-        pg.draw.line(self._screen, (255,255,255), 
-                (self._screen.get_width() * self.ratio, 0), 
-                (self._screen.get_width() * self.ratio, self._screen.get_height()), 
-                2)
-        
+            # debug - draw border line between player / enemy cameras
+            pg.draw.line(self._screen, (255,255,255), 
+                    (self._screen.get_width() * self.ratio, 0), 
+                    (self._screen.get_width() * self.ratio, self._screen.get_height()), 
+                    2)
+            print(self._screen.get_width(), self._player_screen.get_width())
+            self._screen.blit(self._player_screen, (0,0))
+        else:
+            player_pos = ((self._screen.get_width() - self._player_screen.get_width()) // 2, 0)
+            self._screen.blit(self._player_screen, player_pos)     
         self._interface.draw(self._screen)
+
         self._player_screen.fill((0,0,0))
         if self.enemy_ship is not None and self._interface.enemy_ui_active:
             self._enemy_screen.fill((0,0,0))
 
-    def place_ship(self, ship: Spaceship, enemy: bool = False) -> None:
+    def place_ship(self, ship: Spaceship, enemy: bool = False, ratio: float = -1) -> None:
+        # ratio arg was not parsed
+        if ratio == -1:
+            ratio = self.ratio
+            
         ship_center = ship.get_center()
         new_center = (0,0)
+
         if enemy:
             new_center = (
             (self._screen.get_height()) / 2,
-            (self._screen.get_width() * (1-self.ratio)) / 2
+            (self._screen.get_width() * (1-ratio)) / 2
             )
         else:
             new_center = (
-            (self._screen.get_width() * self.ratio) / 2,
+            (self._screen.get_width() * ratio) / 2,
             (self._screen.get_height()) / 2
             )
+
         ship.move_by_distance((
             new_center[0] - ship_center[0],
             new_center[1] - ship_center[1]
@@ -150,10 +153,19 @@ class Display:
         return self._enemy
     
     @enemy_ship.setter
-    def enemy_ship(self, value: Union[Enemy, None]) -> None: #TODO: change User Interface if enemy is changed
-        if value == None:
-            self._enemy = None
-            self._interface.enemy_ship = None
-        else:
-            self._enemy = value
-            self._interface.enemy_ship = value
+    def enemy_ship(self, value: Enemy) -> None: #TODO: change User Interface if enemy is changed
+        if value is None:
+            return
+        
+        self._enemy = value
+        self._interface.enemy_ship = value
+
+        self._enemy_screen = pg.Surface((
+            self._screen.get_height(),
+            self._screen.get_width() * (1-self.ratio)
+            ))
+
+    @enemy_ship.deleter
+    def enemy_ship(self) -> None:
+        self._enemy = None
+        del self._interface.enemy_ship

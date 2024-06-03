@@ -37,8 +37,9 @@ class IntoTheLight:
 
         load_textures()
         self.player = Player()
-        #self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
         self.display = Display(self.screen, self.resolution, float(CONFIG["ratio"]), self.player)
+        #self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
+        #self.display.enemy_ship = self.enemy
         mouse_pos = (0,0)
 
         while True: # game loop
@@ -94,6 +95,21 @@ class IntoTheLight:
                 self.enemy.check_weapon_states(self.player)
                 self.enemy.manage_power()
             time.sleep(self.THREAD_INTERVAL)
+
+    @property
+    def enemy(self) -> Union[Enemy, None]:
+        return self._enemy
+    
+    @enemy.setter
+    def enemy(self, value: Enemy) -> None:
+        self._enemy = value
+        self.display.place_ship(value, enemy=True)
+
+    @enemy.deleter
+    def enemy(self) -> None:
+        self._enemy = None
+        del self.display.enemy_ship
+        del self._enemy
 
 if __name__ == "__main__":
     game_instance = IntoTheLight()

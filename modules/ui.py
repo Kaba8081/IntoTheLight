@@ -328,7 +328,7 @@ class InterfaceController(pg.sprite.Group):
         """
 
         self._enemy_hud_surface = pg.Surface((self.resolution[0] * (1-self.ratio), 196), pg.SRCALPHA)
-        if self.enemy is None:
+        if self._enemy is None:
             return
 
         coords = [32,16]
