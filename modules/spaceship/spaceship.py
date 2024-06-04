@@ -7,12 +7,14 @@ from modules.spaceship.room import Room
 from modules.spaceship.door import Door
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
-from modules.resources import ship_layouts, systems, GameEvents
+from modules.crewmate import Crewmate
+from modules.resources import GameEvents, CrewmateRaces, crewmate_names, ship_layouts, systems
 
 class Spaceship:
     # public
     screen_size: tuple[int, int]
     doors: pg.sprite.Group
+    crewmates: pg.sprite.Group
     rooms: list[Room]
     projectiles: list[Projectile]
     installed_systems: OrderedDict[str, Room]
@@ -34,6 +36,8 @@ class Spaceship:
     _destroy_anim_index: int
     _destroy_anim_ticks: int
 
+    _display_offset: tuple[int, int]
+
     def __init__(self, ship_type: str, screen_size: tuple[int, int], enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
         """
         :param ship_type: str - The type of the spaceship.
@@ -43,6 +47,7 @@ class Spaceship:
         """
         self.screen_size = screen_size
         self.doors = pg.sprite.Group()
+        self.crewmates = pg.sprite.Group()
         self.projectiles = []
         self.event_queue = []
         self.autofire = False
@@ -106,6 +111,10 @@ class Spaceship:
                 hitbox_y = room.hitbox.centery
                 room.hitbox.centery = centery - hitbox_y + centery
 
+        self.spawn_crewmate("pilot")
+        self.spawn_crewmate("shields")
+        self.spawn_crewmate("weapons")
+
     def draw(self, screen: pg.Surface) -> None:
         """
         Draw's the spaceship and it's components on screen.
@@ -117,6 +126,7 @@ class Spaceship:
             group.draw(screen)
 
         self.doors.draw(screen)
+        self.crewmates.draw(screen)
 
         if self.installed_shield is not None:
             self.installed_shield.draw(screen)
@@ -220,6 +230,9 @@ class Spaceship:
 
         for room in self.rooms:
             room.move_by_distance(distance)
+
+        for crewmate in self.crewmates:
+            crewmate.move_by_distance(distance)
 
     def connect_rooms(self, room1: Room, room2: Room) -> tuple[Tile, Tile]:
         """
@@ -370,7 +383,29 @@ class Spaceship:
         
         print("Could not check if system accepts power: System not found!")
         return False
-    
+
+    def spawn_crewmate(self, origin_system: str = "NULL", race: CrewmateRaces = CrewmateRaces.HUMAN, name:str = "NULL") -> None:
+        """Spawn a crewmate on the ship.
+        :param origin_system: str - the system to spawn the crewmate in
+        :param race: CrewmateRaces object,
+        :param name: str - the name of the crewmate"""
+
+        origin_pos = (0,0)
+
+        # if no name was specified, pick a random name from the list
+        if name == "NULL":
+            name = crewmate_names[race.name.lower()][randint(0, len(crewmate_names)-1)]
+
+        # get a random tile from the origin system, or if occupied pick a random system
+        while origin_system == "NULL" or self.installed_systems[origin_system].get_random_tile().occupied:
+            origin_system = list(self.installed_systems.keys())[randint(0, len(self.installed_systems)-1)]
+        
+        origin_pos = self.installed_systems[origin_system].get_random_tile().rect.topleft
+        
+        Crewmate(name, origin_pos, (0,0), self.crewmates, race, enemy=self.enemy)
+        
+        return
+
     def dev_draw_room_hitboxes(self, screen: pg.surface.Surface) -> None:
         """
         Draw the hitbox of the rooms for debugging.

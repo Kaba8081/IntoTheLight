@@ -1,5 +1,4 @@
 from typing import Union, TypeVar
-from dataclasses import dataclass
 import pygame as pg
 from os import path
 import json
@@ -102,7 +101,7 @@ def load_ftl_image(name: Union[str, list], **kwargs) -> Union[pg.sprite.Sprite, 
         print(f"Error loading image {name} from {src_path}! {e}")
         return pg.Surface((1,1))
 
-def load_ftl_spritesheet(name: str, sprite_size: tuple[int,int], row_data: tuple[int], **kwargs) -> list[pg.sprite.Sprite]:
+def load_ftl_spritesheet(name: str, row_data: tuple[int], sprite_size: tuple[int,int] = (32, 32), spacing = (3,3), **kwargs) -> list[pg.sprite.Sprite]:
     """Loads a spritesheet and returns a dictionary with the sprites.
     :param name: The filename of the spritesheet.
     :param sprite_size: The size of each sprite.
@@ -120,7 +119,14 @@ def load_ftl_spritesheet(name: str, sprite_size: tuple[int,int], row_data: tuple
     for y in range(0, int(im_height // sprite_size[1])-1):
         for x in range(0, row_data[y]):
             sprite = pg.sprite.Sprite()
-            rect = pg.Rect(x, y, x + sprite_size[0], y + sprite_size[1])
+            pos_x = x * sprite_size[0]
+            pos_y = y * sprite_size[1]
+
+            # random ahh spacing between sprites
+            pos_x += spacing[0]*x if x != 0 else 0
+            pos_y += spacing[1]*y if y != 0 else 0
+
+            rect = pg.Rect(pos_x, pos_y, sprite_size[0], sprite_size[1])
             sprite.image = pg.Surface(rect.size).convert_alpha()
             sprite.image.blit(spritesheet, (0,0), rect)
 
@@ -133,12 +139,39 @@ def load_ftl_spritesheet(name: str, sprite_size: tuple[int,int], row_data: tuple
 
     return sprites
 
+def group_sprites(sprites: list[pg.sprite.Sprite], data) -> dict[str, pg.sprite.Sprite]:
+    """Group the sprites based on the data."""
+    grouped = dict()
+
+    for key in data.keys():
+        # if the sprite has only one frame, don't add the frame number to the key
+        if data[key] == 1:
+            grouped[key] = sprites.pop(0)
+
+        else:
+            for frame in range(data[key]):
+                grouped[f"{key}_{frame}"] = sprites.pop(0)
+
+    return grouped
+
 def exclude_value_from_dict(input: dict, value: Union[tuple, any]) -> dict:
     """Return a new dictionary with all values that are not equal to the specified value / values."""
     if isinstance(value, tuple) or isinstance(value, list):
         return {key: input[key] for key in input.keys() if key not in value}
 
     return {key: input[key] for key in input.keys() if key != value}
+
+def copy_sprites(sprites: dict[str, pg.sprite.Sprite]) -> dict[str, pg.sprite.Sprite]:
+    """Creates a copy of each sprite to avoid reference issues."""
+    result = dict()
+
+    for key in sprites.keys():
+        new_sprite = pg.sprite.Sprite()
+        new_sprite.image = sprites[key].image.copy()
+        new_sprite.rect = sprites[key].rect.copy()
+        result[key] = new_sprite
+        
+    return result
 
 class GameEvents(Enum):
     """Events that the game needs to handle."""
@@ -153,6 +186,9 @@ class EnemyActions(Enum):
     """Actions that the enemy can take."""
     AIM_WEAPON = 0
     RESIGN = auto()
+
+class CrewmateRaces(Enum):
+    HUMAN = 0
 
 class ThreadVariable:
     value: T
@@ -389,14 +425,35 @@ ship_layouts = {
 }
 
 texture_config = {
-    # people
+    # crewmates
 
-    "human": {
+    CrewmateRaces.HUMAN.name: {
         "basePath": path.join(_FILEPATH, "people"),  
         "extension": ".png",
         "suffix": {"base":"_base", "color": "_color", "layer1": "_layer1", "layer2": "_layer2"},
         "sprite_size": (32, 32),
-        "row_data": (8,8,9,8,8,9,6,8,8,9,6,9,8)
+        "row_data": (8,8,9,8,8,9,6,8,8,9,6,9,8),
+        "states": { 
+            # the amount of frames for each state
+            "moving_down": 4,
+            "moving_right": 4,
+            "moving_up": 4,
+            "moving_left": 4,
+            "attacking": 9,
+            "unknown1": 16,
+            "repairing": 9,
+            "unknown2": 6,
+            "using_right": 4,
+            "using_left": 4,
+            "using_up": 4,
+            "using_down": 4,
+            "phasing": 9,
+            "unknown3": 6,
+            "unkown4": 9,
+            "idle": 1,
+            "unknown5": 2,
+            "dying": 5
+        }
     },
 
     # ui elements
@@ -562,15 +619,21 @@ button_palletes = {
     }
 }
 
+crewmate_names = json.loads(open(path.join(_CONTENT, "crewmate_names.json"), "r").read())
+
 autocomplete_configs(button_palletes, "button_palletes")
 
 def load_textures(): # use this function after initializing the display
-    # people
-    textures["people"] = dict()
+    # crewmates
+    textures["crewmates"] = dict()
 
-    # humans
-    for suffix in texture_config["human"]["suffix"].keys():
-        textures["people"]["human"] = load_ftl_spritesheet(f"human{texture_config['human']['suffix'][suffix]}", **exclude_value_from_dict(texture_config["human"], "suffix"))
+    for race in CrewmateRaces:
+        race = race.name
+        textures["crewmates"][race] = dict()
+
+        for suffix in texture_config[race]["suffix"].keys():
+            sprites = load_ftl_spritesheet(f"{race.lower()}{texture_config[race]['suffix'][suffix]}", **exclude_value_from_dict(texture_config[race], ("suffix", "states")))
+            textures["crewmates"][race][suffix] = group_sprites(sprites, texture_config[race]["states"])
 
     # -- ui elements --
     # add icons to textures

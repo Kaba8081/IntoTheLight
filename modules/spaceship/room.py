@@ -25,6 +25,7 @@ class Room(pg.sprite.Group):
 
     selected: bool
     hovering: bool
+    occupied: bool
 
     aimed_at: bool
     targeted_by: list[Weapon]
@@ -228,6 +229,19 @@ class Room(pg.sprite.Group):
             self.health_points -= projectile.damage
 
         return
+
+    def get_random_tile(self) -> Union[Tile, None]:
+        """
+        Return a random tile from the room or None if all are occupied.
+        :return: Union[Tile, None] - the random tile
+        """
+
+        for sprite in self.sprites():
+            if isinstance(sprite, Tile) and not sprite.occupied:
+                return sprite
+        
+        # no free tile was found
+        return None
 
     def dev_draw_hitbox(self, screen: pg.surface.Surface) -> None:
         """

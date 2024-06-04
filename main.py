@@ -29,13 +29,13 @@ class IntoTheLight:
 
     def game_loop(self) -> None:
         mouse_event = False
-
-        self.screen = pg.display.set_mode(self.resolution)
-        pg.display.set_caption("IntoTheLight")
         clock = pg.time.Clock()
         dt = 0
 
+        self.screen = pg.display.set_mode(self.resolution)
+        pg.display.set_caption("IntoTheLight")
         load_textures()
+
         self.player = Player()
         self.display = Display(self.screen, self.resolution, float(CONFIG["ratio"]), self.player)
         self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
