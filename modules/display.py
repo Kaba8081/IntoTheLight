@@ -110,7 +110,6 @@ class Display:
                     (self._screen.get_width() * self.ratio, 0), 
                     (self._screen.get_width() * self.ratio, self._screen.get_height()), 
                     2)
-            print(self._screen.get_width(), self._player_screen.get_width())
             self._screen.blit(self._player_screen, (0,0))
         else:
             player_pos = ((self._screen.get_width() - self._player_screen.get_width()) // 2, 0)

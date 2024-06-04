@@ -145,6 +145,7 @@ class GameEvents(Enum):
     TOOK_DAMAGE = 0
     SYSTEM_DAMAGED = auto()
     SHIP_DESTROYED = auto()
+    REMOVE_ENEMY = auto()
     ENEMY_RESIGNING = auto()
     GAME_PAUSED = auto()
 

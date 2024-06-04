@@ -38,8 +38,7 @@ class IntoTheLight:
         load_textures()
         self.player = Player()
         self.display = Display(self.screen, self.resolution, float(CONFIG["ratio"]), self.player)
-        #self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
-        #self.display.enemy_ship = self.enemy
+        self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
         mouse_pos = (0,0)
 
         while True: # game loop
@@ -84,7 +83,10 @@ class IntoTheLight:
                 for event in self._enemy_events.get_value():
                     match event:
                         case GameEvents.SHIP_DESTROYED:
+                            pass
+                        case GameEvents.REMOVE_ENEMY:
                             print("Enemy destroyed, stopping thread...")
+                            del self.enemy
                             return
                         case GameEvents.TOOK_DAMAGE: # TODO: send crew to the damaged system
                             print("Enemy system took damage")
@@ -103,11 +105,14 @@ class IntoTheLight:
     @enemy.setter
     def enemy(self, value: Enemy) -> None:
         self._enemy = value
+        self.display.enemy_ship = self._enemy
+
         self.display.place_ship(value, enemy=True)
 
     @enemy.deleter
     def enemy(self) -> None:
         self._enemy = None
+
         del self.display.enemy_ship
         del self._enemy
 

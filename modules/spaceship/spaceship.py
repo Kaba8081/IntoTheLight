@@ -31,6 +31,8 @@ class Spaceship:
     _room_oxygen: Union[Room, None]
     _room_pilot: Union[Room, None]
 
+    _destroy_anim_index: int
+    _destroy_anim_ticks: int
 
     def __init__(self, ship_type: str, screen_size: tuple[int, int], enemy: bool = False, offset: tuple[int, int] = (0,0)) -> None:
         """
@@ -60,6 +62,7 @@ class Spaceship:
         
         self.hull_hp = 30
         self.destroyed = False
+        self._destroy_anim_ticks = 300
 
         for room in ship_layouts[ship_type]["rooms"]:
             self.rooms.append(Room(
@@ -135,22 +138,14 @@ class Spaceship:
                 projectile.draw(screen)
 
     def update(self, dt: float) -> list[GameEvents]:
-        if self.hull_hp <= 0:
+        if self.hull_hp <= 0 or self.destroyed:
+            if not hasattr(self, "_destroy_anim_index"):
+                self.event_queue.append(GameEvents.SHIP_DESTROYED)
+            if self.enemy and hasattr(self, "_destroy_anim_index") and self._destroy_anim_index >= self._destroy_anim_ticks:
+                self.event_queue.append(GameEvents.REMOVE_ENEMY)
+
             self._anim_destroy()
-            return
 
-        for weapon in self.weapons:
-            if weapon.state == "ready" and bool(weapon) and weapon.target is not None:
-                self.projectiles += weapon.fire(
-                    (self.screen_size[0]+100, 
-                     self.screen_size[1]//2 + randint(-25,25)),
-                    weapon.target)
-                if hasattr(self, "autofire") and not self.autofire:
-                    weapon.target.targeted = False
-                    weapon.target = None
-
-            weapon.update(dt)
-        
         for projectile in self.projectiles:
             if projectile.hit_target:
                 self.projectiles.remove(projectile)
@@ -158,9 +153,22 @@ class Spaceship:
             else:
                 projectile.update(dt)
 
-        if self.installed_shield is not None:
-            max_shields = self.installed_systems["shields"].power // 2 if "shields" in self.installed_systems.keys() else 0
-            self.installed_shield.update(dt, max_shields)
+        if not self.destroyed: # update the ship components only if it's not destroyed
+            for weapon in self.weapons:
+                if weapon.state == "ready" and bool(weapon) and weapon.target is not None:
+                    self.projectiles += weapon.fire(
+                        (self.screen_size[0]+100, 
+                        self.screen_size[1]//2 + randint(-25,25)),
+                        weapon.target)
+                    if hasattr(self, "autofire") and not self.autofire:
+                        weapon.target.targeted = False
+                        weapon.target = None
+
+                weapon.update(dt)
+            
+            if self.installed_shield is not None:
+                max_shields = self.installed_systems["shields"].power // 2 if "shields" in self.installed_systems.keys() else 0
+                self.installed_shield.update(dt, max_shields)
         
         temp_events = self.event_queue[:] if len(self.event_queue) > 0 else None
         self.event_queue = []
@@ -378,8 +386,6 @@ class Spaceship:
         else: # initialize the animation and cleanup game elements
             self.destroyed = True
             self._destroy_anim_index = 0
-
-            print("The ship was destroyed!")
 
             room: Room
             for room in self.rooms:

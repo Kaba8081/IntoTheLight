@@ -37,6 +37,7 @@ class Enemy(Spaceship):
         super().__init__(ship_type, screen_size, True, offset)
 
         self.hull_hp = randint(12,20)
+        self.hull_hp = 1
     
     def select_room(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> Union[Room, None]:
         """
