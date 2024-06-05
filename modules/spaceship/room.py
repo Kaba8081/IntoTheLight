@@ -74,7 +74,7 @@ class Room(pg.sprite.Group):
 
         for x, collumn in enumerate(self.room_layout):
             for y, tile in enumerate(collumn):
-                tile = Tile(self.pos, (x, y), textures["tile_default"], self)
+                tile = Tile(self.pos, (x, y), self)
                 self.add(tile)
 
         for upgrade_type in upgrade_slots:
@@ -242,6 +242,24 @@ class Room(pg.sprite.Group):
         
         # no free tile was found
         return None
+
+    def check_hover(self, mouse_pos: tuple[int, int]) -> None:
+        # TODO: highlight tiles if the mouse is hovering over the room
+        return
+    
+    def check_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> Union[Tile, None]:
+        """
+        Check if the room is clicked and select it if it is.
+        :param mouse_pos: tuple[int, int] - the current mouse position
+        :param mouse_clicked: tuple[bool, bool, bool] - the current state of the mouse buttons
+        """
+        if not mouse_clicked[0]:
+            return
+
+        for tile in self.sprites():
+            if isinstance(tile, Tile):
+                if tile.selected == False and tile.occupied == False and tile.rect.collidepoint(mouse_pos):
+                    return tile
 
     def dev_draw_hitbox(self, screen: pg.surface.Surface) -> None:
         """

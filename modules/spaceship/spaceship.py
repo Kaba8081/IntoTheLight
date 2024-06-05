@@ -126,7 +126,9 @@ class Spaceship:
             group.draw(screen)
 
         self.doors.draw(screen)
-        self.crewmates.draw(screen)
+
+        for crewmate in self.crewmates:
+            crewmate.draw(screen)
 
         if self.installed_shield is not None:
             self.installed_shield.draw(screen)
@@ -162,6 +164,8 @@ class Spaceship:
                 del projectile
             else:
                 projectile.update(dt)
+
+        self.crewmates.update()
 
         if not self.destroyed: # update the ship components only if it's not destroyed
             for weapon in self.weapons:
@@ -402,7 +406,7 @@ class Spaceship:
         
         origin_pos = self.installed_systems[origin_system].get_random_tile().rect.topleft
         
-        Crewmate(name, origin_pos, (0,0), self.crewmates, race, enemy=self.enemy)
+        Crewmate(name, self, origin_pos, (0,0), self.crewmates, race, enemy=self.enemy)
         
         return
 

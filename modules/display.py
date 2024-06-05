@@ -58,6 +58,31 @@ class Display:
 
         self._interface.mouse_clicked(mouse_pos, mouse_clicked)
 
+        active_crewmate = None
+        for crewmate in self._player.crewmates:
+            # check for active crewmates before checking for room clicks
+            if crewmate.selected == True:
+                active_crewmate = crewmate
+
+            crewmate.check_clicked(mouse_pos, mouse_clicked)
+        
+        if active_crewmate is not None:
+            for room in self._player.rooms:
+                tile = room.check_clicked(mouse_pos, mouse_clicked)
+
+                if tile is not None:
+                    print(active_crewmate.moving == True, active_crewmate.moving_to is not None)
+                    if active_crewmate.moving == True and active_crewmate.moving_to is not None:
+                        # if the crewmate was already moving to another tile, delesect it
+                        active_crewmate.moving_to.selected = False
+
+                    active_crewmate.moving_to = tile
+                    tile.selected = True
+                    active_crewmate.moving = True
+                    active_crewmate.selected = False
+
+                    break
+        
         if self.enemy_ship is not None and self._player.selected_weapon is not None:
             room = self.enemy_ship.select_room(mouse_pos, mouse_clicked)
             self._player.selected_weapon.target = room
@@ -72,7 +97,14 @@ class Display:
         :param mouse_pos: tuple[int, int] - the current mouse position
         """
         self._interface.check_mouse_hover(mouse_pos)
-        
+
+        for crewmate in self._player.crewmates:
+            # check for active crewmates before checking for room clicks
+            if crewmate.selected == True:
+                any_active_crewmates = True
+
+            crewmate.check_hover(mouse_pos)
+
         if self.enemy_ship is not None and self._player.selected_weapon is not None:
             self.enemy_ship.hover_weapon(mouse_pos)
 

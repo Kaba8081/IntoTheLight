@@ -635,6 +635,10 @@ def load_textures(): # use this function after initializing the display
             sprites = load_ftl_spritesheet(f"{race.lower()}{texture_config[race]['suffix'][suffix]}", **exclude_value_from_dict(texture_config[race], ("suffix", "states")))
             textures["crewmates"][race][suffix] = group_sprites(sprites, texture_config[race]["states"])
 
+    textures["crewmates"]["destination"] = load_ftl_image("green_destination", basePath=path.join(_FILEPATH, "people"))
+    textures["crewmates"]["health_box"] = load_ftl_image("health_box", basePath=path.join(_FILEPATH, "people"))
+    textures["crewmates"]["health_box_red"] = load_ftl_image("health_box_red", basePath=path.join(_FILEPATH, "people"))
+
     # -- ui elements --
     # add icons to textures
     for system in systems:
