@@ -48,7 +48,7 @@ class Player(Spaceship):
         # check if the player clicked / is hovering on a door
         door: Door
         for door in self.doors:
-            if door.rect.collidepoint(mouse_pos):
+            if door.hitbox.collidepoint(mouse_pos):
                 door.hovering = True
                 if mouse_btns is not None and mouse_btns[0]:
                     door.toggle()

@@ -233,13 +233,40 @@ class Spaceship:
         """
 
         for room in self.rooms:
-            room.move_by_distance(distance)
+            room.rect.move_ip(distance)
+            room.hitbox.move_ip(distance)
+
+            for tile in room.sprites():
+                tile.rect.move_ip(distance)
+                tile.hitbox.move_ip(distance) if hasattr(tile, "hitbox") else None
 
         for door in self.doors:
-            door.move_by_distance(distance)
+            door.rect.move_ip(distance)
+            door.hitbox.move_ip(distance)
 
         for crewmate in self.crewmates:
-            crewmate.move_by_distance(distance)
+            crewmate.rect.move_ip(distance)
+            crewmate.hitbox.move_ip(distance)
+
+        if self.installed_shield is not None:
+            self.installed_shield.shield_sprite.rect = self.installed_shield.shield_sprite.image.get_rect(center=self.get_center())
+
+    def move_hitbox_by_distance(self, distance: tuple[int, int]) -> None:
+        """
+        Move the hitboxes of the spaceship by a distance in pixels.
+        :param distance: The distance to move the hitboxes by.
+        """
+        
+        for room in self.rooms:
+            room.hitbox.move_ip(distance)
+            for tile in room.sprites():
+                tile.hitbox.move_ip(distance) if hasattr(tile, "hitbox") else None
+        
+        for crewmate in self.crewmates:
+            crewmate.hitbox.move_ip(distance)
+        
+        for door in self.doors:
+            door.hitbox.move_ip(distance)
 
     def connect_rooms(self, room1: Room, room2: Room) -> tuple[Tile, Tile]:
         """

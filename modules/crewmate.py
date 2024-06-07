@@ -11,6 +11,7 @@ from modules.resources import CrewmateRaces, copy_sprites, textures
 class Crewmate(pg.sprite.Sprite):
     # public
     name: str
+    rect: pg.Rect
     hitbox: pg.Rect
     race: CrewmateRaces
     moving_to: Union[Tile, None]
@@ -85,18 +86,11 @@ class Crewmate(pg.sprite.Sprite):
         # TODO: if self.selected == True, draw an outline around the crewmate
 
         screen.blit(self.image, self._sprite.rect)
-    
-    def move_by_distance(self, distance: tuple[int, int]) -> None:
-        self.rect.x += distance[0]
-        self.rect.y += distance[1]
-        self.hitbox.x += distance[0]
-        self.hitbox.y += distance[1]
 
     def check_hover(self, mouse_pos: tuple[int, int]) -> None:
         self.hovering = True if self.hitbox.collidepoint(mouse_pos) else False
 
     def check_clicked(self, mouse_pos: tuple[int,int], mouse_clicked: tuple[int, int, int]) -> None:
-        print(self.hitbox.collidepoint(mouse_pos))
         if self.hitbox.collidepoint(mouse_pos) and mouse_clicked[0]:
             self.selected = True
         else:

@@ -5,10 +5,12 @@ class Tile(pg.sprite.Sprite):
     # public
     pos: tuple[int,int]
     rect: pg.Rect
+    hitbox: pg.Rect
     image: pg.Surface
 
     # private
     _occupied: bool
+    _selected: bool
 
     def __init__(self, 
                  parent_pos: tuple, 
@@ -23,6 +25,8 @@ class Tile(pg.sprite.Sprite):
         self.pos = pos
         self.rect.x = parent_pos[0] + pos[0] * 32
         self.rect.y = parent_pos[1] + pos[1] * 32
+
+        self.hitbox = self.rect.copy()
 
         self._occupied = False
         self._selected = False

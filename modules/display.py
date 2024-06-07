@@ -45,7 +45,7 @@ class Display:
 
         
         self.place_ship(self._player)
-        self._player.move_by_distance((((self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
+        self._player.move_hitbox_by_distance((((self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
 
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
         """
@@ -69,7 +69,6 @@ class Display:
                 tile = room.check_clicked(mouse_pos, mouse_clicked)
 
                 if tile is not None:
-                    print(active_crewmate.moving == True, active_crewmate.moving_to is not None)
                     if active_crewmate.moving == True and active_crewmate.moving_to is not None:
                         # if the crewmate was already moving to another tile, delesect it
                         active_crewmate.moving_to.selected = False
@@ -140,10 +139,10 @@ class Display:
                     (self._screen.get_width() * self.ratio, 0), 
                     (self._screen.get_width() * self.ratio, self._screen.get_height()), 
                     2)
-        self._screen.blit(self._player_screen, (0,0))
-        # else:
-        #     player_pos = ((self._screen.get_width() - self._player_screen.get_width()) // 2, 0)
-        #     self._screen.blit(self._player_screen, player_pos)     
+            self._screen.blit(self._player_screen, (0,0))
+        else:
+            player_pos = ((self._screen.get_width() - self._player_screen.get_width()) // 2, 0)
+            self._screen.blit(self._player_screen, player_pos)     
         self._interface.draw(self._screen)
 
         self._player_screen.fill((0,0,0))
@@ -177,6 +176,18 @@ class Display:
         if ship.installed_shield is not None:
             ship.installed_shield.post_init_update(ship.get_corners(), ship.get_center())
 
+    def dev_draw_player_hitboxes(self) -> None:
+        """
+        Draw the player's hitboxes on screen.
+        """
+        for room in self._player.rooms:
+            pg.draw.rect(self._screen, (255,0,0), room.hitbox, 1)
+            for tile in room.sprites():
+                pg.draw.rect(self._screen, (0,0,255), tile.hitbox, 1) if hasattr(tile, "hitbox") else None
+        
+        for crewmate in self._player.crewmates:
+            pg.draw.rect(self._screen, (0,255,0), crewmate.hitbox, 1)
+
     @property
     def enemy_ship(self) -> Union[Enemy, None]:
         return self._enemy
@@ -193,10 +204,11 @@ class Display:
             self._screen.get_height(),
             self._screen.get_width() * (1-self.ratio)
             ))
-        self._player.move_by_distance(((-(self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
+
+        self._player.move_hitbox_by_distance((-((self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
 
     @enemy_ship.deleter
     def enemy_ship(self) -> None:
         self._enemy = None
-        self._player.move_by_distance(((self._screen.get_width() - self._player_screen.get_width()) // 2, 0))
+        self._player.move_hitbox_by_distance((((self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
         del self._interface.enemy_ship

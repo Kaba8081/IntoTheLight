@@ -155,18 +155,6 @@ class Room(pg.sprite.Group):
             pg.draw.rect(screen, (125,0,0,255), self.rect.inflate(-4, -4), 1)
             pg.draw.rect(screen, (125,0,0,150), self.rect.inflate(-8, -8), 1)
 
-    def move_by_distance(self, distance: tuple[int, int]) -> None:
-        self.rect.x += distance[0]
-        self.rect.y += distance[1]
-
-        for tile in self.sprites():
-            tile.rect.x += distance[0]
-            tile.rect.y += distance[1]
-        
-        distance = distance[::-1] if self._enemy_ship else distance # flip axises if enemy ship
-        self.hitbox.x += distance[0]
-        self.hitbox.y += distance[1]
-
     def place_upgrade(self, upgrade_type: str, orientation: str, upgrade_name: str) -> None:
         """
         Place an upgrade slot or a specified weapon in the given slot.
@@ -258,15 +246,8 @@ class Room(pg.sprite.Group):
 
         for tile in self.sprites():
             if isinstance(tile, Tile):
-                if tile.selected == False and tile.occupied == False and tile.rect.collidepoint(mouse_pos):
+                if tile.selected == False and tile.occupied == False and tile.hitbox.collidepoint(mouse_pos):
                     return tile
-
-    def dev_draw_hitbox(self, screen: pg.surface.Surface) -> None:
-        """
-        Draw the hitbox of the room for debugging.
-        :param screen: pg.surface.Surface - the screen to draw on
-        """
-        pg.draw.rect(screen, (0,255,0, 50), self.hitbox)
 
     @property
     def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
