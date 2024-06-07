@@ -42,3 +42,10 @@ class Door(pg.sprite.Sprite):
             self._image = self._txt_open
         else:
             self._image = self._txt_closed
+
+    def move_by_distance(self, distance: tuple[int, int]) -> None:
+        """
+        Move the door by a given distance.
+        """
+
+        self.rect.move_ip(distance)

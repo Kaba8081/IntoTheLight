@@ -235,6 +235,9 @@ class Spaceship:
         for room in self.rooms:
             room.move_by_distance(distance)
 
+        for door in self.doors:
+            door.move_by_distance(distance)
+
         for crewmate in self.crewmates:
             crewmate.move_by_distance(distance)
 

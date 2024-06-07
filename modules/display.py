@@ -30,9 +30,6 @@ class Display:
                  enemy: Enemy = None,
                  ) -> None:
 
-        if not hasattr(self, "player"):
-            print("Player was not passed to display class!")
-
         self._interface = InterfaceController(resolution, player, ratio=ratio, enemy=enemy)
         self._screen = screen
         self.ratio = ratio
@@ -48,6 +45,7 @@ class Display:
 
         
         self.place_ship(self._player)
+        self._player.move_by_distance((((self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
 
     def mouse_clicked(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> None:
         """
@@ -142,10 +140,10 @@ class Display:
                     (self._screen.get_width() * self.ratio, 0), 
                     (self._screen.get_width() * self.ratio, self._screen.get_height()), 
                     2)
-            self._screen.blit(self._player_screen, (0,0))
-        else:
-            player_pos = ((self._screen.get_width() - self._player_screen.get_width()) // 2, 0)
-            self._screen.blit(self._player_screen, player_pos)     
+        self._screen.blit(self._player_screen, (0,0))
+        # else:
+        #     player_pos = ((self._screen.get_width() - self._player_screen.get_width()) // 2, 0)
+        #     self._screen.blit(self._player_screen, player_pos)     
         self._interface.draw(self._screen)
 
         self._player_screen.fill((0,0,0))
@@ -195,8 +193,10 @@ class Display:
             self._screen.get_height(),
             self._screen.get_width() * (1-self.ratio)
             ))
+        self._player.move_by_distance(((-(self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
 
     @enemy_ship.deleter
     def enemy_ship(self) -> None:
         self._enemy = None
+        self._player.move_by_distance(((self._screen.get_width() - self._player_screen.get_width()) // 2, 0))
         del self._interface.enemy_ship

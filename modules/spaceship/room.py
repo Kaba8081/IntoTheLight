@@ -253,7 +253,7 @@ class Room(pg.sprite.Group):
         :param mouse_pos: tuple[int, int] - the current mouse position
         :param mouse_clicked: tuple[bool, bool, bool] - the current state of the mouse buttons
         """
-        if not mouse_clicked[0]:
+        if not mouse_clicked[2]:
             return
 
         for tile in self.sprites():

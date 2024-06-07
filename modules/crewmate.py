@@ -96,6 +96,7 @@ class Crewmate(pg.sprite.Sprite):
         self.hovering = True if self.hitbox.collidepoint(mouse_pos) else False
 
     def check_clicked(self, mouse_pos: tuple[int,int], mouse_clicked: tuple[int, int, int]) -> None:
+        print(self.hitbox.collidepoint(mouse_pos))
         if self.hitbox.collidepoint(mouse_pos) and mouse_clicked[0]:
             self.selected = True
         else:
