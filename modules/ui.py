@@ -396,13 +396,7 @@ class InterfaceController(pg.sprite.Group):
         return self._enemy
 
     @enemy_ship.setter
-    def enemy_ship(self, enemy: Union[Enemy, None]) -> None:
-        if enemy is None:
-            self.enemy_ui_active = False
-            del self._enemy_shields_bar
-            self._enemy = None
-            return
-        
+    def enemy_ship(self, enemy: Enemy) -> None:
         self.enemy_ui_active = True
         self._enemy_shields_bar = ShieldBar(enemy.installed_shield, (0,0), True)
         self._enemy = enemy

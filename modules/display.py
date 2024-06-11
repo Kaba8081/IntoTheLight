@@ -17,6 +17,8 @@ class Display:
     _interface: InterfaceController
     _screen: pg.Surface
     _player_screen: pg.Surface
+    
+    _enemy: Union[Enemy, None]
     _enemy_screen: pg.Surface
 
     _player: Player
@@ -33,16 +35,15 @@ class Display:
         self._interface = InterfaceController(resolution, player, ratio=ratio, enemy=enemy)
         self._screen = screen
         self.ratio = ratio
-        self._enemy = None
 
         self._player = player
-        self.enemy_ship = enemy
-
         self._player_screen = pg.Surface((
             screen.get_width() * self.ratio,
             screen.get_height()
             ))
-
+        
+        self._enemy =None
+        self._enemy_screen = None
         
         self.place_ship(self._player)
         self._player.move_hitbox_by_distance((((self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
@@ -146,6 +147,9 @@ class Display:
         if self.enemy_ship is not None and self._interface.enemy_ui_active:
             self._enemy_screen.fill((0,0,0))
 
+        if self.enemy_ship is not None and self._interface.enemy_ui_active:
+            self._enemy.dev_draw_room_hitboxes(self._screen)
+
     def place_ship(self, ship: Spaceship, enemy: bool = False, ratio: float = -1) -> None:
         # ratio arg was not parsed
         if ratio == -1:
@@ -190,10 +194,7 @@ class Display:
         return self._enemy
     
     @enemy_ship.setter
-    def enemy_ship(self, value: Enemy) -> None: #TODO: change User Interface if enemy is changed
-        if value is None:
-            return
-        
+    def enemy_ship(self, value: Enemy) -> None:
         self._enemy = value
         self._interface.enemy_ship = value
 
@@ -202,6 +203,7 @@ class Display:
             self._screen.get_width() * (1-self.ratio)
             ))
 
+        self.place_ship(self._enemy, True)
         self._player.move_hitbox_by_distance((-((self._screen.get_width() - self._player_screen.get_width()) // 2), 0))
 
     @enemy_ship.deleter

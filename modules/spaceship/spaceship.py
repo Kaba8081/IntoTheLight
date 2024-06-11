@@ -70,10 +70,15 @@ class Spaceship:
         self.destroyed = False
         self._destroy_anim_ticks = 300
 
+        offset = offset[::-1] if self.enemy else offset
         for room in ship_layouts[ship_type]["rooms"]:
+            room_pos = (room["pos"][0]*32, room["pos"][1]*32)
+            room_pos_offset = (room_pos[0] + offset[0], room_pos[1] + offset[1])
+            room_pos_offset = room_pos_offset[::-1] if enemy else room_pos_offset
+
             self.rooms.append(Room(
-                (room["pos"][0]*32, room["pos"][1]*32),
-                (room["pos"][0]*32 + offset[1], room["pos"][1]*32 + offset[0]),
+                room_pos,
+                room_pos_offset,
                 room["tiles"],
                 self,
                 role=room["role"] if "role" in room else None,
@@ -105,12 +110,14 @@ class Spaceship:
         self.installed_systems = OrderedDict((k, self.installed_systems[k]) for k in temp_systems)
         del temp_systems
 
-        if enemy: # flip all the rooms hitboxes horizontally
+        if enemy: # flip all the rooms hitboxes horizontally and offset them
             centery = self.get_center()[0]
+            corners = self.get_corners()
+            offset_y = self.screen_size[1] - corners[1][0]
 
             for room in self.rooms:
                 hitbox_y = room.hitbox.centery
-                room.hitbox.centery = centery - hitbox_y + centery
+                room.hitbox.centery = 2*centery - hitbox_y + offset_y
 
         self.spawn_crewmate("pilot")
         self.spawn_crewmate("shields")
@@ -208,9 +215,6 @@ class Spaceship:
                 lowest_x = room.rect.left
             if  lowest_y is None or room.rect.top < lowest_y:
                 lowest_y = room.rect.top
-        
-        # find the highest x and y values
-        for room in self.rooms:
             if highest_x is None or room.rect.right > highest_x:
                 highest_x = room.rect.right
             if highest_y is None or room.rect.bottom > highest_y:
@@ -233,22 +237,23 @@ class Spaceship:
         Move the spaceship by a distance in pixels.
         :param distance: The distance to move the spaceship by.
         """
+        hitbox_distance = (distance[1], -distance[0]) if self.enemy else distance
 
         for room in self.rooms:
             room.rect.move_ip(distance)
-            room.hitbox.move_ip(distance)
+            room.hitbox.move_ip(hitbox_distance)
 
             for tile in room.sprites():
                 tile.rect.move_ip(distance)
-                tile.hitbox.move_ip(distance) if hasattr(tile, "hitbox") else None
+                tile.hitbox.move_ip(hitbox_distance) if hasattr(tile, "hitbox") else None
 
         for door in self.doors:
             door.rect.move_ip(distance)
-            door.hitbox.move_ip(distance)
+            door.hitbox.move_ip(hitbox_distance)
 
         for crewmate in self.crewmates:
             crewmate.rect.move_ip(distance)
-            crewmate.hitbox.move_ip(distance)
+            crewmate.hitbox.move_ip(hitbox_distance)
 
         if self.installed_shield is not None:
             self.installed_shield.shield_sprite.rect = self.installed_shield.shield_sprite.image.get_rect(center=self.get_center())
@@ -258,7 +263,9 @@ class Spaceship:
         Move the hitboxes of the spaceship by a distance in pixels.
         :param distance: The distance to move the hitboxes by.
         """
-        
+        if self.enemy:
+            distance = distance[::-1]    
+
         for room in self.rooms:
             room.hitbox.move_ip(distance)
             for tile in room.sprites():
@@ -498,7 +505,7 @@ class Spaceship:
         """
 
         for room in self.rooms:
-            room.dev_draw_hitbox(screen)
+            pg.draw.rect(screen, (255,0,0), room.hitbox, 1)
 
     def _anim_destroy(self) -> None: # TODO: implement destruction animation
         if hasattr(self, "_destroy_anim_index"):

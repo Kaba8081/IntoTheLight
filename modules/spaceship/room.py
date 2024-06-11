@@ -53,7 +53,7 @@ class Room(pg.sprite.Group):
             (pos[0], pos[1]), 
             (len(room_layout)*32, len(room_layout[0])*32))
         if enemy_ship:
-            self.hitbox = pg.Rect((realpos[1],realpos[0]), (self.rect.height, self.rect.width))
+            self.hitbox = pg.Rect(realpos, (self.rect.width, self.rect.height)[::-1])
         else:
             self.hitbox = pg.Rect(realpos, (self.rect.width, self.rect.height))
     

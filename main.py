@@ -12,6 +12,7 @@ class IntoTheLight:
     # public
     THREAD_INTERVAL: float
     THREAD_INTERVAL = 0.2
+    MAIN_THREAD_RUNNING = True
 
     # private
     _enemy_events: list[GameEvents]
@@ -38,10 +39,10 @@ class IntoTheLight:
 
         self.player = Player()
         self.display = Display(self.screen, self.resolution, float(CONFIG["ratio"]), self.player)
-        self.enemy = Enemy(offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
+        self.enemy = Enemy(screen_size=(self.resolution[0] * float(CONFIG["ratio"]), self.resolution[1]), offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
         mouse_pos = (0,0)
 
-        while True: # game loop
+        while self.MAIN_THREAD_RUNNING: # game loop
             mouse_focused = pg.mouse.get_focused()
             if mouse_focused:
                 mouse_pos = pg.mouse.get_pos()
@@ -49,6 +50,7 @@ class IntoTheLight:
 
             for event in pg.event.get():
                 if event.type == pg.QUIT:
+                    self.MAIN_THREAD_RUNNING = False
                     return
                 
                 if event.type == pg.MOUSEBUTTONDOWN and mouse_focused:
@@ -74,9 +76,9 @@ class IntoTheLight:
             pg.display.flip()
             self.screen.fill((0,0,0))
             dt = clock.tick(60) / 1000 # cap the game's framerate at 60 fps
-
+        
     def enemy_controller(self) -> None:
-        while True:
+        while self.MAIN_THREAD_RUNNING:
             if not hasattr(self, "enemy"):
                 time.sleep(2)
             else:
@@ -106,8 +108,6 @@ class IntoTheLight:
     def enemy(self, value: Enemy) -> None:
         self._enemy = value
         self.display.enemy_ship = self._enemy
-
-        self.display.place_ship(value, enemy=True)
 
     @enemy.deleter
     def enemy(self) -> None:
