@@ -64,6 +64,10 @@ class Crewmate(pg.sprite.Sprite):
         self._movement_queue = []
     
     def update(self) -> None:
+        if self.boarding:
+            # TODO: implement boarding logic
+            return
+
         if self.moving and self.moving_to is not None and len(self._movement_queue) > 0: # if the crewmate is moving, don't occupy any tiles
             if self.rect.center == self._movement_queue[0].rect.center:
                 del self._movement_queue[0]
@@ -76,22 +80,23 @@ class Crewmate(pg.sprite.Sprite):
 
                 self.rect.move_ip(x,y)
                 self.hitbox.move_ip(x,y)
-
-            return 
+        
         elif self.moving and self.moving_to is not None and len(self._movement_queue) == 0:
             self.moving = False
             self.occupied_tile = self.moving_to
             del self.moving_to
-        
-        if self.boarding:
-            # TODO: implement boarding logic
-            return
-        
-        for room in self._parent_ship.rooms:
-            colliding_tile = pg.sprite.spritecollideany(self, room)
-            if colliding_tile is not None:
-                self.occupied_tile = colliding_tile
-                break
+
+        if self.moving: # if moving check if the crewmate is colliding with any doors
+            #doors = pg.sprite.spritecollide(self, self._parent_ship.doors, False)
+            
+            for door in self._parent_ship.doors:
+                door.toggle() if pg.sprite.collide_circle_ratio(0.3)(self, door) else None
+        else:
+            for room in self._parent_ship.rooms:
+                colliding_tile = pg.sprite.spritecollideany(self, room)
+                if colliding_tile is not None:
+                    self.occupied_tile = colliding_tile
+                    break
                 
         return
 

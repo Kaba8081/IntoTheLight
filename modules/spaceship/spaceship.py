@@ -167,6 +167,7 @@ class Spaceship:
                 projectile.update(dt)
 
         self.crewmates.update()
+        self.doors.update()
 
         if not self.destroyed: # update the ship components only if it's not destroyed
             for weapon in self.weapons:
@@ -457,7 +458,6 @@ class Spaceship:
                 curr_room = room
                 break
         
-        # TODO: finish this function
         while True:
             # find next best room to move to
             best_room = None
