@@ -72,11 +72,8 @@ class Display:
                     if active_crewmate.moving == True and active_crewmate.moving_to is not None:
                         # if the crewmate was already moving to another tile, delesect it
                         active_crewmate.moving_to.selected = False
-
-                    active_crewmate.moving_to = tile
-                    tile.selected = True
-                    active_crewmate.moving = True
-                    active_crewmate.selected = False
+                    
+                    active_crewmate.move_to_tile(tile)
 
                     break
         

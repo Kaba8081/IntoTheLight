@@ -15,6 +15,7 @@ class Crewmate(pg.sprite.Sprite):
     hitbox: pg.Rect
     race: CrewmateRaces
     moving_to: Union[Tile, None]
+    movement_speed: int = 5
 
     selected: bool
     moving: bool
@@ -26,6 +27,7 @@ class Crewmate(pg.sprite.Sprite):
     _sprite: pg.sprite.Sprite
     _enemy: bool
     _occupied_tile: Union[Tile, None]
+    _movement_queue: list[Tile]
 
     def __init__(self, 
                  name: str,
@@ -58,13 +60,20 @@ class Crewmate(pg.sprite.Sprite):
         self.moving_to = None
         self.boarding = False
         self._enemy = enemy
+        self._movement_queue = []
     
     def update(self) -> None:
-        if self.moving and self.moving_to is not None: # if the crewmate is moving, don't occupy any tiles
-            if self.occupied_tile is not None:
-                del self.occupied_tile
-            
-            # TODO: implement movement logic
+        if self.moving and self.moving_to is not None and len(self._movement_queue) > 0: # if the crewmate is moving, don't occupy any tiles
+            if self.rect.center == self._movement_queue[0].rect.center:
+                del self._movement_queue[0]
+            else:
+                x,y=0,0
+                if self.rect.center[0] != self._movement_queue[0].rect.center[0]:
+                    x = self.movement_speed if self.rect.center[0] < self._movement_queue[0].rect.center[0] else -self.movement_speed
+                if self.rect.center[1] != self._movement_queue[0].rect.center[1]:
+                    y = self.movement_speed if self.rect.center[1] < self._movement_queue[0].rect.center[1] else -self.movement_speed
+
+                self.rect.move_ip(x,y)
 
             return 
         
@@ -95,6 +104,15 @@ class Crewmate(pg.sprite.Sprite):
             self.selected = True
         else:
             self.selected = False
+
+    def move_to_tile(self, tile: Tile) -> None:
+        self.moving = True
+        self.selected = False
+        self.moving_to = tile
+        tile.selected = True
+
+        self._movement_queue = self._parent_ship.get_path_between_tiles(self.occupied_tile, tile)
+        del self.occupied_tile
 
     @property
     def occupied_tile(self) -> Union[Tile, None]:

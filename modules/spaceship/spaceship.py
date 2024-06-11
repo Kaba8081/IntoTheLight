@@ -440,6 +440,44 @@ class Spaceship:
         
         return
 
+    def get_path_between_tiles(self, start_tile: Tile, end_tile: Tile) -> list[Tile]:
+        """
+        Get the path between two tiles.
+        :param start_tile: modules.Tile - The start tile.
+        :param end_tile: modules.Tile - The end tile.
+        :return list[modules.Tile] - The path between the two tiles.
+        """
+
+        curr_room = None
+        result_path = []
+
+        for room in self.rooms:
+            if start_tile in room.sprites():
+                curr_room = room
+                break
+        
+        # TODO: finish this function
+        while True:
+            # find next best room to move to
+            best_room = None
+            for room in self.rooms:
+                if pg.math.Vector2(room.rect.topleft).distance_to(pg.math.Vector2(end_tile.rect.topleft)) < pg.math.Vector2(curr_room.rect.topleft).distance_to(pg.math.Vector2(end_tile.rect.topleft)):
+                    best_room = room
+
+            # Make path to door between the rooms
+            pass
+
+            # if the room is the end room, break from the loop
+            if end_tile in best_room.sprites():
+                break
+
+            # else, append a list of tiles to the path
+            pass
+
+        # append a path from door to end_tile
+
+        return result_path
+
     def dev_draw_room_hitboxes(self, screen: pg.surface.Surface) -> None:
         """
         Draw the hitbox of the rooms for debugging.
