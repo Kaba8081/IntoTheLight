@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from modules.spaceship.tile import Tile
 
 from modules.resources import CrewmateRaces, copy_sprites, textures
+from modules.misc.pathfinding import draw_path
 
 class Crewmate(pg.sprite.Sprite):
     # public
@@ -15,7 +16,7 @@ class Crewmate(pg.sprite.Sprite):
     hitbox: pg.Rect
     race: CrewmateRaces
     moving_to: Union[Tile, None]
-    movement_speed: int = 5
+    movement_speed: int = 1
 
     selected: bool
     moving: bool
@@ -74,8 +75,13 @@ class Crewmate(pg.sprite.Sprite):
                     y = self.movement_speed if self.rect.center[1] < self._movement_queue[0].rect.center[1] else -self.movement_speed
 
                 self.rect.move_ip(x,y)
+                self.hitbox.move_ip(x,y)
 
             return 
+        elif self.moving and self.moving_to is not None and len(self._movement_queue) == 0:
+            self.moving = False
+            self.occupied_tile = self.moving_to
+            del self.moving_to
         
         if self.boarding:
             # TODO: implement boarding logic
@@ -96,6 +102,9 @@ class Crewmate(pg.sprite.Sprite):
 
         screen.blit(self.image, self._sprite.rect)
 
+        # draw the path the crewmate is taking
+        #draw_path(screen, self._movement_queue)
+
     def check_hover(self, mouse_pos: tuple[int, int]) -> None:
         self.hovering = True if self.hitbox.collidepoint(mouse_pos) else False
 
@@ -112,6 +121,7 @@ class Crewmate(pg.sprite.Sprite):
         tile.selected = True
 
         self._movement_queue = self._parent_ship.get_path_between_tiles(self.occupied_tile, tile)
+
         del self.occupied_tile
 
     @property

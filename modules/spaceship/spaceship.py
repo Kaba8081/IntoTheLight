@@ -7,6 +7,7 @@ from modules.spaceship.room import Room
 from modules.spaceship.door import Door
 from modules.spaceship.tile import Tile
 from modules.spaceship.upgrades import *
+from modules.misc.pathfinding import astar_pathfinding
 from modules.crewmate import Crewmate
 from modules.resources import GameEvents, CrewmateRaces, crewmate_names, ship_layouts, systems
 
@@ -460,21 +461,33 @@ class Spaceship:
         while True:
             # find next best room to move to
             best_room = None
-            for room in self.rooms:
-                if pg.math.Vector2(room.rect.topleft).distance_to(pg.math.Vector2(end_tile.rect.topleft)) < pg.math.Vector2(curr_room.rect.topleft).distance_to(pg.math.Vector2(end_tile.rect.topleft)):
+            best_dist = pg.math.Vector2(curr_room.rect.topleft).distance_to(pg.math.Vector2(end_tile.rect.topleft))
+            for room in curr_room.adjecent_rooms.keys():
+                if best_room is None or pg.math.Vector2(room.rect.topleft).distance_to(pg.math.Vector2(end_tile.rect.topleft)) < best_dist:
+                    best_dist = pg.math.Vector2(room.rect.topleft).distance_to(pg.math.Vector2(end_tile.rect.topleft))
                     best_room = room
 
             # Make path to door between the rooms
-            pass
+            relative_path = astar_pathfinding(curr_room.room_layout, start_tile.pos, curr_room.adjecent_rooms[best_room][0].pos)
+
+            # transform the relative path into the list[Tile] format
+            for pos in relative_path:
+                result_path.append(curr_room.room_tile_layout[pos[0]][pos[1]])
+
+            #append a list of tiles to the path
+            result_path.append(curr_room.adjecent_rooms[best_room][1])
+            start_tile = curr_room.adjecent_rooms[best_room][1]
 
             # if the room is the end room, break from the loop
+            curr_room = best_room
             if end_tile in best_room.sprites():
                 break
 
-            # else, append a list of tiles to the path
-            pass
-
         # append a path from door to end_tile
+        relative_path = astar_pathfinding(curr_room.room_layout, start_tile.pos, end_tile.pos)
+
+        for pos in relative_path:
+            result_path.append(curr_room.room_tile_layout[pos[0]][pos[1]])
 
         return result_path
 

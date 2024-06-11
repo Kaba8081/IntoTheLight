@@ -41,6 +41,10 @@ class Tile(pg.sprite.Sprite):
         """Sets the tile's occupied status."""
 
         self._occupied = value
+        
+        # if occupied set to true, set selected to false
+        if value:
+            self.selected = False
 
     @property
     def selected(self) -> bool:

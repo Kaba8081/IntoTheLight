@@ -16,8 +16,9 @@ class Room(pg.sprite.Group):
     hitbox: pg.Rect
 
     pos: tuple[int, int]
-    room_layout: list[dict]
-    adjecent_rooms: dict[Room, list[tuple[int, int]]]
+    room_layout: list[list[int]]
+    room_tile_layout: list[list[Tile]]
+    adjecent_rooms: dict[Room, tuple[Tile, Tile]]
     parent: Spaceship
     role: Union[str, None]
     level: int
@@ -39,7 +40,7 @@ class Room(pg.sprite.Group):
     def __init__(self, 
                  pos: tuple[int, int],
                  realpos: tuple[int, int],
-                 room_layout: list[dict],
+                 room_layout: list[list[int]],
                  parent: Spaceship,
                  upgrade_slots: dict[str, str] = {},
                  role: str = None,
@@ -58,6 +59,7 @@ class Room(pg.sprite.Group):
     
         self.pos = pos
         self.room_layout = room_layout
+        self.room_tile_layout = list()
         self.adjecent_rooms = {}
         self.upgrade_slots = {}
         self.parent = parent
@@ -73,9 +75,12 @@ class Room(pg.sprite.Group):
         self.targeted_by = []
 
         for x, collumn in enumerate(self.room_layout):
+            col = list()
             for y, tile in enumerate(collumn):
                 tile = Tile(self.pos, (x, y), self)
                 self.add(tile)
+                col.append(tile)
+            self.room_tile_layout.append(col)
 
         for upgrade_type in upgrade_slots:
             for orientation in upgrade_slots[upgrade_type]:
