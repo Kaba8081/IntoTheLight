@@ -54,7 +54,10 @@ class Player(Spaceship):
                     door.toggle()
 
     def key_pressed(self, key: pg.key) -> None:
-        """Handles player input from the keyboard."""
+        """
+        Handles player input from the keyboard.
+        :param key: pg.key - the key that was pressed
+        """
         # TODO: definetly can be improved
 
         num_of_weapons = len(self.weapons)

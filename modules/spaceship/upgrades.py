@@ -168,6 +168,9 @@ class Weapon(UpgradeSlot):
     def fire(self, first_pos: tuple[int, int], target_room: Room) -> tuple[Projectile]:
         """
         Fire the weapon.
+        :param first_pos: tuple[int, int] - the position of the weapon
+        :param target_room: Room - the target room
+        :return: list[Projectile] - the projectiles fired
         """
         if self.state == "ready":
             self.state = "charging"

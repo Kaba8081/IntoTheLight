@@ -14,6 +14,11 @@ _CONTENT = path.join(_FILEPATH, "content")
 _FONTS = path.join(_CONTENT, "fonts")
 _FILEPATH = path.join(_CONTENT, "img")
 
+GLOBAL_DEBUG_OPTIONS = {
+    "show_hitboxes": False,
+    "show_pathfinding": False,
+}
+
 pg.font.init()
 
 def get_font(font: str ="arial", size=16, bold=False) -> pg.font.Font:
@@ -140,7 +145,11 @@ def load_ftl_spritesheet(name: str, row_data: tuple[int], sprite_size: tuple[int
     return sprites
 
 def group_sprites(sprites: list[pg.sprite.Sprite], data) -> dict[str, pg.sprite.Sprite]:
-    """Group the sprites based on the data."""
+    """
+    Group the sprites based on the data.
+    :param sprites: The sprites to group.
+    :param data: The data to group the sprites by.
+    """
     grouped = dict()
 
     for key in data.keys():
@@ -149,8 +158,9 @@ def group_sprites(sprites: list[pg.sprite.Sprite], data) -> dict[str, pg.sprite.
             grouped[key] = sprites.pop(0)
 
         else:
+            grouped[f"{key}"] = list()
             for frame in range(data[key]):
-                grouped[f"{key}_{frame}"] = sprites.pop(0)
+                grouped[key].append(sprites.pop(0))
 
     return grouped
 
@@ -166,10 +176,19 @@ def copy_sprites(sprites: dict[str, pg.sprite.Sprite]) -> dict[str, pg.sprite.Sp
     result = dict()
 
     for key in sprites.keys():
-        new_sprite = pg.sprite.Sprite()
-        new_sprite.image = sprites[key].image.copy()
-        new_sprite.rect = sprites[key].rect.copy()
-        result[key] = new_sprite
+        if type(sprites[key]) == list:
+            new_sprites = list()
+            for sprite in sprites[key]:
+                new_sprite = pg.sprite.Sprite()
+                new_sprite.image = sprite.image.copy()
+                new_sprite.rect = sprite.rect.copy()
+                new_sprites.append(new_sprite)
+            result[key] = new_sprites
+        else:
+            new_sprite = pg.sprite.Sprite()
+            new_sprite.image = sprites[key].image.copy()
+            new_sprite.rect = sprites[key].rect.copy()
+            result[key] = new_sprite
         
     return result
 

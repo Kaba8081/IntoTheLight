@@ -36,8 +36,7 @@ class Enemy(Spaceship):
                  ) -> None:
         super().__init__(ship_type, screen_size, True, offset)
 
-        self.hull_hp = randint(12,20)
-        self.hull_hp = 1
+        self.hull_hp = randint(6,20)
     
     def select_room(self, mouse_pos: tuple[int, int], mouse_clicked: tuple[bool, bool, bool]) -> Union[Room, None]:
         """
@@ -60,6 +59,7 @@ class Enemy(Spaceship):
     def hover_weapon(self, mouse_pos: tuple[int, int]) -> None:
         """
         Highlight the room if the cursor is hovering over it.
+        :param mouse_pos: tuple[int, int] The current mouse position.
         """
         if self.destroyed:
             return
@@ -72,7 +72,10 @@ class Enemy(Spaceship):
         return
     
     def check_weapon_states(self, enemy_ship: Spaceship) -> None:
-        """Updates the state of enemy weapons"""
+        """
+        Updates the state of enemy weapons
+        :param enemy_ship: Spaceship - the player's ship
+        """
         if enemy_ship.destroyed:
             return
 

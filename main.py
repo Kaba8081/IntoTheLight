@@ -1,6 +1,7 @@
 import time
 import pygame as pg
 from typing import Union
+from random import randint
 import threading
 
 from modules.display import Display
@@ -13,11 +14,14 @@ class IntoTheLight:
     THREAD_INTERVAL: float
     THREAD_INTERVAL = 0.2
     MAIN_THREAD_RUNNING = True
+    
+    player: Player
 
     # private
     _enemy_events: list[GameEvents]
     _enemy_actions: dict[EnemyActions, any]
     _game_events: list[GameEvents]
+    _enemy: Union[Enemy, None]
 
     def __init__(self) -> None:
         pg.init()
@@ -27,6 +31,9 @@ class IntoTheLight:
         self._enemy_events = ThreadVariable([], threading.Lock())
         self._enemy_actions = ThreadVariable({}, threading.Lock())
         self._game_events = ThreadVariable([], threading.Lock())
+
+        self.player = None
+        self._enemy = None
 
     def game_loop(self) -> None:
         mouse_event = False
@@ -62,13 +69,18 @@ class IntoTheLight:
 
                 if event.type == pg.KEYDOWN and event.key in keybinds.values():
                     self.player.key_pressed(event.key)
+                
+                # spawn enemy ship
+                if event.type == pg.KEYDOWN and event.key == pg.K_F1:
+                    if self.enemy == None:
+                        self.enemy = Enemy(screen_size=(self.resolution[0] * float(CONFIG["ratio"]), self.resolution[1]), offset=(self.resolution[0] * float(CONFIG["ratio"]),0))
 
             # if the mouse was not clicked, check if it's hovering over objects
             if not mouse_event:
                 self.display.check_mouse_hover(mouse_pos)
 
             self.player.update(dt, mouse_pos)
-            if hasattr(self, "enemy"):
+            if self.enemy is not None:
                 self._enemy_events.set_value(self.enemy.update(dt))
             self.display.update()
             self.display.draw()
@@ -78,8 +90,10 @@ class IntoTheLight:
             dt = clock.tick(60) / 1000 # cap the game's framerate at 60 fps
         
     def enemy_controller(self) -> None:
+        """Controls the enemy ship's actions."""
+        
         while self.MAIN_THREAD_RUNNING:
-            if not hasattr(self, "enemy"):
+            if self.enemy is None:
                 time.sleep(2)
             else:
                 for event in self._enemy_events.get_value():
@@ -88,8 +102,11 @@ class IntoTheLight:
                             pass
                         case GameEvents.REMOVE_ENEMY:
                             print("Enemy destroyed, stopping thread...")
+
+                            self.player.scrap += randint(10, 20)
                             del self.enemy
                             return
+
                         case GameEvents.TOOK_DAMAGE: # TODO: send crew to the damaged system
                             print("Enemy system took damage")
                             continue
@@ -109,23 +126,23 @@ class IntoTheLight:
         self._enemy = value
         self.display.enemy_ship = self._enemy
 
+        enemy_controller_thread = threading.Thread(target=game_instance.enemy_controller)
+        enemy_controller_thread.start()
+
     @enemy.deleter
     def enemy(self) -> None:
         self._enemy = None
+        self._enemy_events.set_value([])
 
         del self.display.enemy_ship
-        del self._enemy
 
 if __name__ == "__main__":
     game_instance = IntoTheLight()
-    game_loop_thread = threading.Thread(target=game_instance.game_loop)
-    enemy_controller_thread = threading.Thread(target=game_instance.enemy_controller)
 
+    game_loop_thread = threading.Thread(target=game_instance.game_loop)
     game_loop_thread.start()
-    enemy_controller_thread.start()
 
     game_loop_thread.join()
-    enemy_controller_thread.join()
 
     pg.quit()  
     exit(0)

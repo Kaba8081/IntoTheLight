@@ -142,6 +142,11 @@ class Spaceship:
             self.installed_shield.draw(screen)
     
     def draw_projectiles(self, screen: pg.Surface, enemy_screen: pg.Surface) -> None:
+        """
+        Draws the projectiles on the given screen.
+        :param screen: pg.Surface - The screen to draw the projectiles on.
+        :param enemy_screen: pg.Surface - The screen of the enemy.
+        """
         for projectile in self.projectiles:
             v_pos = projectile.position()
 
@@ -523,6 +528,7 @@ class Spaceship:
 
     @property
     def empty_upgrade_slots(self) -> Union[list[UpgradeSlot], None]:
+        """Return a list of all the empty upgrade slots on the ship."""
         empty_slots = []
         for room in self.rooms:
             room_slots = room.upgrade_slots
@@ -533,6 +539,7 @@ class Spaceship:
 
     @property
     def weapons(self) -> list[Weapon]:
+        """Return a list of all the weapons on the ship."""
         weapons = []
         for room in self.rooms:
             room_weapons = room.weapons
@@ -543,6 +550,7 @@ class Spaceship:
     
     @property
     def thrusters(self) -> Union[list[Thruster], None]:
+        """Return a list of all the thrusters on the ship."""
         thrusters = []
         for room in self.rooms:
             room_thrusters = room.thrusters

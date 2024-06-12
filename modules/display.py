@@ -4,10 +4,11 @@ import pygame as pg
 
 if TYPE_CHECKING:
     from modules.spaceship.spaceship import Spaceship
+
 from modules.player import Player
 from modules.enemy import Enemy
-
 from modules.ui import InterfaceController
+from modules.resources import GLOBAL_DEBUG_OPTIONS
 
 class Display:
     # public
@@ -132,10 +133,10 @@ class Display:
             self._interface.draw_enemy_interface(self._enemy_screen)
             self._screen.blit(self._enemy_screen, (self._screen.get_width() * self.ratio, 0))
 
-            # debug - draw border line between player / enemy cameras
+            # draw border line between player / enemy cameras
             pg.draw.line(self._screen, (255,255,255), 
                     (self._screen.get_width() * self.ratio, 0), 
-                    (self._screen.get_width() * self.ratio, self._screen.get_height()), 
+                    (self._screen.get_width() * self.ratio, self._screen.get_height() - 142), 
                     2)
             self._screen.blit(self._player_screen, (0,0))
         else:
@@ -146,11 +147,20 @@ class Display:
         self._player_screen.fill((0,0,0))
         if self.enemy_ship is not None and self._interface.enemy_ui_active:
             self._enemy_screen.fill((0,0,0))
+        
+        if GLOBAL_DEBUG_OPTIONS["show_hitboxes"]:
+            self.dev_draw_player_hitboxes()
 
-        if self.enemy_ship is not None and self._interface.enemy_ui_active:
-            self._enemy.dev_draw_room_hitboxes(self._screen)
+            for room in self._enemy.rooms:
+                pg.draw.rect(self._screen, (255,0,0), room.hitbox, 1)
 
     def place_ship(self, ship: Spaceship, enemy: bool = False, ratio: float = -1) -> None:
+        """
+        Adjusts the ship position after being created.
+        :param ship: Spaceship - the ship to be placed
+        :param enemy: bool - if the ship is an enemy ship
+        :param ratio: float - the ratio of the screen the ship should be placed at
+        """
         # ratio arg was not parsed
         if ratio == -1:
             ratio = self.ratio
