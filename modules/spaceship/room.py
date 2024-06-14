@@ -31,6 +31,8 @@ class Room(pg.sprite.Group):
     aimed_at: bool
     targeted_by: list[Weapon]
 
+    repair_progress: float
+
     # private
     _upgrade_index: int
     _enemy_ship: bool
@@ -73,6 +75,8 @@ class Room(pg.sprite.Group):
         # enemy ship
         self.aimed_at = False
         self.targeted_by = []
+
+        self.repair_progress = 0
 
         for x, collumn in enumerate(self.room_layout):
             col = list()
@@ -369,6 +373,14 @@ class Room(pg.sprite.Group):
 
         return
     
+    @property
+    def needs_repair(self) -> bool:
+        """Return True if the room needs repair, else False."""
+
+        if hasattr(self, "_health") and self.role is not None:
+            return self._health < self.max_power
+        return False
+
     @property
     def icon(self) -> Union[pg.Surface, None]:
         """Return the icon of the room. (If the room is a system room, else return None)"""

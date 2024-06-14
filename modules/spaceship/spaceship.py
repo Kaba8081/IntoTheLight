@@ -178,7 +178,7 @@ class Spaceship:
             else:
                 projectile.update(dt)
 
-        self.crewmates.update()
+        self.crewmates.update(dt)
         self.doors.update()
 
         if not self.destroyed: # update the ship components only if it's not destroyed

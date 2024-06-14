@@ -1,4 +1,10 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING, Union
 import pygame as pg
+
+if TYPE_CHECKING:
+    from modules.spaceship.room import Room
+
 from modules.resources import textures
 
 class Tile(pg.sprite.Sprite):
@@ -7,6 +13,7 @@ class Tile(pg.sprite.Sprite):
     rect: pg.Rect
     hitbox: pg.Rect
     image: pg.Surface
+    parent_room: Room
 
     # private
     _occupied: bool
@@ -21,6 +28,7 @@ class Tile(pg.sprite.Sprite):
         
         self.image = textures["tile_default"].copy()
         self.rect = self.image.get_rect()
+        self.parent_room = sprite_group
 
         self.pos = pos
         self.rect.x = parent_pos[0] + pos[0] * 32
