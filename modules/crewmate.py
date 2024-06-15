@@ -46,7 +46,7 @@ class Crewmate(pg.sprite.Sprite):
     # static variables
     movement_speed: int = 1
     animation_speed: float = .1
-    repairing_speed: float = .05
+    repairing_speed: float = .1
 
     def __init__(self, 
                  name: str,
@@ -130,8 +130,6 @@ class Crewmate(pg.sprite.Sprite):
                 if self.occupied_tile.parent_room.repair_progress >= 1:
                     self.occupied_tile.parent_room.health_points += 1
                     self.occupied_tile.parent_room.repair_progress = 0
-
-                print(f"repair progress: {self.occupied_tile.parent_room.repair_progress}")
             else:
                 self._anim_idle()
 

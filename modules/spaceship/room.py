@@ -328,16 +328,21 @@ class Room(pg.sprite.Group):
         """
 
         if hasattr(self, "_power") and self.role is not None:
-            if value >=0 and value <= self.max_power and self.parent.usable_power >= value - self.power:
-                # shield power usage is doubled
-                change = value - self._power
+            # shield power usage is doubled
+            change = value - self._power
+
+            # check if power can be assigned:
+            if (value >=0 and # power is not negative
+                value <= self.max_power and # power is not higher than the max power
+                self.parent.usable_power >= value - self.power and # enough power is available
+                self.health_points >= (self._power + (change*2) if self.role == "shields" else value) # enough health points are available
+                ):
+
                 self._power += change * 2 if self.role == "shields" else change
 
                 if self.role == "shields":
                     if self.parent.installed_shield is not None and self.parent.installed_shield.curr_charge > 0:
                         self.parent.installed_shield.curr_charge = 0 if self._power == 0 else self.parent.installed_shield.curr_charge
-            else:
-                print(f"Could not set power: Power level is out of range! (role: {self.role}, {value}/{self.max_power}/{self.parent.usable_power})")
         else:
             print("Could not set power: Room is not a system room!")
 
@@ -360,6 +365,19 @@ class Room(pg.sprite.Group):
 
         if hasattr(self, "_health") and self.role is not None:
             if value >= 0 and value <= self.max_power:
+                # if the room is a weapons room disable weapons using more power than the health points
+                if self.role == "weapons" and value < self._health and self.power >= self._health:
+                    for weapon in self.parent.weapons:
+                        if self.power > value and weapon.state != "disabled":
+                            weapon.disable()
+                            self.power -= weapon.req_power
+                        elif self.power <= value:
+                            break
+
+                # the power level can't be higher than the health points
+                elif value < self._health and self.power >= self._health:
+                    self.power = value
+
                 self._health = value
 
                 if self._health == self.max_power: # normal

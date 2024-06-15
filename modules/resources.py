@@ -282,7 +282,7 @@ ship_layouts = {
             "role": "weapons",
             "level": 3,
             "upgrade_slots":{
-                "weapon": {"top": "laster_mk2"}
+                "weapon": {"top": "laser_mk1"}
             }
         },
         {
@@ -314,7 +314,7 @@ ship_layouts = {
             "pos": (3, 6),
             "tiles": [[1,1],[1,1],[1,1],[1,1],[1,1],[1,1]],
             "upgrade_slots":{
-                "weapon": {"bottom": "laser_mk2"}
+                "weapon": {"bottom": "laser_mk1"}
             }
         },
         {

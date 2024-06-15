@@ -190,13 +190,23 @@ class InterfaceController(pg.sprite.Group):
             system_power = system.power
             
             coords = (self._power_bar_size[0] + 32 + (self._power_gap_between_systems[0] * index), self.resolution[1] - self._power_gap_between_systems[1])
-
+            
+            # draw full power bar
             coords = (coords[0] + (self._power_system_bar_icon_size[0]//2 - self._power_system_bar_size[0]//2), coords[1] - (self._power_system_bar_icon_size[1]//2))
             for power_level in range(0, system.max_power):
                 if  power_level < system_power: # draw full bar
                     pg.draw.rect(self.surface, self._color_on, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]))
                 else: # draw empty bar
                     pg.draw.rect(self.surface, self._color_off, (coords[0], coords[1] - power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]), 2)
+            
+            # draw damaged and repairing power bars
+            coords = (coords[0], coords[1] - power_level*self._power_system_bar_gap)
+            if system.needs_repair: # damaged system
+                for power_level in range(0, system.max_power - system.health_points):
+                    pg.draw.rect(self.surface, (255,0,0), (coords[0], coords[1] + power_level*self._power_system_bar_gap, self._power_system_bar_size[0], self._power_system_bar_size[1]))
+            
+                if system.repair_progress > 0:
+                    pg.draw.rect(self.surface, (255,200,0), (coords[0], coords[1] + power_level*self._power_system_bar_gap, self._power_system_bar_size[0] * system.repair_progress, self._power_system_bar_size[1]))
         return
     
     def _draw_weapons(self) -> None:
@@ -428,7 +438,6 @@ class PowerIcon(pg.sprite.Sprite):
         self._room_obj = room_obj
         self.system_name = system_name
         self.coords = coords
-        # textures["system_icons"][system_name]["green" if powered else "grey"]
         self.icon = textures["system_icons"][system_name]["green" if powered else "grey"]
         self.image = self.icon.image
         self.rect = self.image.get_rect(center=(coords[0] + size[0]//2, coords[1] + size[1]//2))
@@ -436,7 +445,7 @@ class PowerIcon(pg.sprite.Sprite):
 
     def update(self) -> None:
         """Update the power icon based on the power level of the system."""
-        power = self._room_obj.power
+        power = 0 if self._room_obj.health_points == 0 else self._room_obj.power
         self.icon = textures["system_icons"][self.system_name]["green" if power>0 else "grey"]
         self.image = self.icon.image.convert_alpha()
 

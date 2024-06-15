@@ -19,7 +19,6 @@ class Spaceship:
     rooms: list[Room]
     projectiles: list[Projectile]
     installed_systems: OrderedDict[str, Room]
-    installed_weapons: dict[str, Weapon]
     installed_thrusters: dict[str, Thruster]
     installed_shield: Union[Shield, None]
     hull_hp: int
@@ -62,7 +61,6 @@ class Spaceship:
 
         # required data about these systems
         self.installed_systems = {}
-        self.installed_weapons = {}
         self.installed_thrusters = {}
         self.installed_shield = None
         
@@ -427,7 +425,7 @@ class Spaceship:
         for installed_system_name in self.installed_systems.keys():
             if installed_system_name == system:
                 room = self.installed_systems[installed_system_name]
-                return room.power + value <= room.max_power
+                return room.power + value <= room.health_points
         
         print("Could not check if system accepts power: System not found!")
         return False
